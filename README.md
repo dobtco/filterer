@@ -76,6 +76,12 @@ And in your views:
 
 Bonus! Pagination:
 
+In your controller:
+```ruby
+helper Filterer::PaginationHelper
+```
+
+In your view:
 ```erb
 <%= render_filterer_pagination(@filterer) %>
 ```
