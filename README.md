@@ -74,7 +74,7 @@ And in your views:
 <% end %>
 ```
 
-Bonus! Pagination:
+#### Pagination
 
 In your controller:
 ```ruby
