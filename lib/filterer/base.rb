@@ -3,12 +3,10 @@ module Filterer
 
     attr_accessor :results, :meta, :direction, :sort, :params
 
-    STANDARD_PARAMS = [:page]
+    IGNORED_PARAMS = [:page]
 
-    def initialize(params, opts = {})
-      @params = params
-      @opts = opts # @todo merge defaults
-
+    def initialize(params = {}, opts = {})
+      @params, @opts = params, opts
       setup_meta
       find_results
     end
@@ -18,9 +16,10 @@ module Filterer
     end
 
     def setup_meta
-      @meta = {}
-      @meta[:page] = [@params[:page].to_i, 1].max
-      @meta[:per_page] = 10
+      @meta = {
+        page: [@params[:page].to_i, 1].max,
+        per_page: 10
+      }
     end
 
     def find_results
@@ -45,14 +44,21 @@ module Filterer
     end
 
     def add_params_to_query
-      @params.reject { |k, v| k.in?(STANDARD_PARAMS) }.each do |k, v|
-        next unless respond_to?(:"param_#{k}")
-        @results = send(:"param_#{k}", v) || @results
+      @params.reject { |k, v| k.in?(IGNORED_PARAMS) }
+             .select { |k, v| v.present? }
+             .each do |k, v|
+
+        method_name = :"param_#{k}"
+        @results = respond_to?(method_name) ? send(method_name, v) : @results
       end
     end
 
     def order_results
       # noop
+    end
+
+    def starting_query
+      raise 'You must override this method!'
     end
 
   end
