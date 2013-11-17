@@ -78,5 +78,44 @@ Bonus! Pagination:
 <%= render_filterer_pagination(@filterer) %>
 ```
 
+#### Passing options to the Filterer
+
+```ruby
+class PersonFilterer < Filterer::Base
+  def starting_query
+    @opts[:organization].people.where('deleted_at IS NULL')
+  end
+end
+
+...
+
+PersonFilterer.new(params, organization: Organization.find(4))
+```
+
+#### Sorting the results
+
+Filterer isn't too opinionated in this case, but here's what we use:
+
+```ruby
+class PersonFilterer < Filterer::Base
+  ...
+
+  def valid_sort_options
+    {
+      'submitted' => 'submitted_at',
+      'popularity' => 'votes_count'
+    }
+  end
+
+  def order_results
+    @direction = @params[:direction] == 'desc' ? 'DESC' : 'ASC'
+    @sort = @params[:sort].in?(valid_sort_options.keys) ? @params[:sort] : 'submitted'
+    @results = @results.order("#{valid_sort_options[@sort]} #{@direction}, people.id")
+  end
+end
+```
+
+Note that if you define an `order_results` method, it will get called automatically.
+
 #### License
 MIT
