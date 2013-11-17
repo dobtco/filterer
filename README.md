@@ -32,6 +32,13 @@ Another answer could be in your models. But passing a bunch of query parameters 
 
 First, add `gem 'filterer'` to your `Gemfile`.
 
+
+Then generate the Filterer class:
+
+```
+rails generate filterer PersonFilterer
+```
+
 And then instead of throwing all of this logic into a controller or model, you create a `Filterer` that looks like this:
 
 ```ruby
