@@ -48,7 +48,7 @@ module Filterer
              .select { |k, v| v.present? }
              .each do |k, v|
 
-        method_name = :"param_#{k}"
+        method_name = "param_#{k}"
         @results = respond_to?(method_name) ? send(method_name, v) : @results
       end
     end
