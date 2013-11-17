@@ -61,5 +61,10 @@ module Filterer
       raise 'You must override this method!'
     end
 
+    def self.count(params = {}, opts = {})
+      filterer = self.new(params, { count_only: true }.merge(opts))
+      return filterer.meta[:total]
+    end
+
   end
 end
