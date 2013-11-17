@@ -6,7 +6,6 @@ Filterer lets your users easily filter results from your ActiveRecord models. Wh
 ```
 Name              Email           Admin?
 ----              ----            ----
-
 Adam Becker       foo@bar.com     true
 Barack Obama      bo@wh.gov       false
 Joe Biden         joe@biden.com   false
@@ -29,9 +28,55 @@ Another answer could be in your models. But passing a bunch of query parameters 
 
 **Enter Filterer.**
 
-#### About
+## Using Filterer
 
-#### Usage
+So instead of throwing all of this logic into a controller or model, you create a `Filterer` that looks like this:
+
+```ruby
+# app/filterers/person_filterer.rb
+
+class PersonFilterer < Filterer::Base
+  def starting_query
+    Person.where('deleted_at IS NULL')
+  end
+
+  def param_name(x)
+    @results.where(name: x)
+  end
+
+  def param_email(x)
+    @results.where('LOWER(email) = ?', x)
+  end
+
+  def param_admin(x)
+    @results.where(admin: true)
+  end
+end
+```
+
+And in your controller:
+
+```ruby
+class PeopleController < ApplicationController
+  def index
+    @filterer = PersonFilterer.new(params)
+  end
+end
+```
+
+And in your views:
+
+```erb
+<% @filterer.results.each do |person| %>
+  ...
+<% end %>
+```
+
+Bonus! Pagination:
+
+```erb
+<%= render_filterer_pagination(@filterer) %>
+```
 
 #### License
 MIT
