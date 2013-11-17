@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  label: MyText
+  type: 
+  field_options: MyText
+  sort_order: 1
+  required: false
+  blind: false
+  admin_only: false
+
+two:
+  label: MyText
+  type: 
+  field_options: MyText
+  sort_order: 1
+  required: false
+  blind: false
+  admin_only: false
