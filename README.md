@@ -8,7 +8,7 @@ Name              Email           Admin?
 ----              ----            ----
 Adam Becker       foo@bar.com     true
 Barack Obama      bo@wh.gov       false
-Joe Biden         joe@biden.com   false
+Joe Biden         joe@biden.com   true
 ```
 
 What if you want to let your users filter the results by name? Or email? Or whether or not the Person is an admin? Where does that logic go?
@@ -73,6 +73,8 @@ And in your views:
   ...
 <% end %>
 ```
+
+Now, when a user visits `/people`, they'll see Adam, Barack, and Joe, all three people. But when they visit `/people?name=Adam%20Becker`, they'll see only Adam. Or when they visit `/people?admin=t`, they'll see only Adam and Joe.
 
 #### Pagination
 
