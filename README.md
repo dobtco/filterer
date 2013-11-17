@@ -30,7 +30,9 @@ Another answer could be in your models. But passing a bunch of query parameters 
 
 ## Using Filterer
 
-So instead of throwing all of this logic into a controller or model, you create a `Filterer` that looks like this:
+First, add `gem 'filterer'` to your `Gemfile`.
+
+And then instead of throwing all of this logic into a controller or model, you create a `Filterer` that looks like this:
 
 ```ruby
 # app/filterers/person_filterer.rb
