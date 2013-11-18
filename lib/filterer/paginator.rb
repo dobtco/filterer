@@ -3,9 +3,9 @@ module Filterer
 
     attr_reader :pages
 
-    def initialize(searcher)
-      @searcher = searcher
-      return @pages = [1] if @searcher.meta[:last_page] == 1
+    def initialize(filterer)
+      @filterer = filterer
+      return @pages = [1] if @filterer.meta[:last_page] == 1
       push_default_pages
       calculate_additional_pages
       add_breaks
@@ -13,14 +13,14 @@ module Filterer
 
     def push_default_pages
       @pages = [1, 2]
-      push_page(@searcher.meta[:last_page], @searcher.meta[:last_page] - 1)
+      push_page(@filterer.meta[:last_page], @filterer.meta[:last_page] - 1)
     end
 
     def calculate_additional_pages
       offset = 0
-      current_page = @searcher.meta[:page]
+      current_page = @filterer.meta[:page]
 
-      while @pages.length < 11 && ( (current_page - offset >= 1) || (current_page + offset <= @searcher.meta[:last_page]) ) do
+      while @pages.length < 11 && ( (current_page - offset >= 1) || (current_page + offset <= @filterer.meta[:last_page]) ) do
         push_page(current_page - offset, current_page + offset)
         offset += 1
       end
@@ -43,7 +43,7 @@ module Filterer
 
     def push_page(*args)
       args.each do |page|
-        @pages.push(page) unless @pages.include?(page) || (page > @searcher.meta[:last_page]) || (page < 1)
+        @pages.push(page) unless @pages.include?(page) || (page > @filterer.meta[:last_page]) || (page < 1)
       end
     end
 
