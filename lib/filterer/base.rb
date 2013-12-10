@@ -3,7 +3,7 @@ module Filterer
 
     IGNORED_PARAMS = [:page]
 
-    attr_accessor :results, :meta, :direction, :sort, :params
+    attr_accessor :results, :meta, :direction, :sort, :params, :opts
 
     class << self
       attr_accessor :sort_options
