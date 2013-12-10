@@ -56,6 +56,16 @@ class SortingFiltererD < Filterer::Base
   sort_option 'foo', 'baz', nulls_last: true
 end
 
+class SortingFiltererE < Filterer::Base
+  def starting_query
+    FakeQuery.new
+  end
+
+  sort_option 'id', default: true
+  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.direction) }
+  sort_option Regexp.new('zoo([0-9]+)'), -> (results, matches, filterer) { results.order('zoo') }
+end
+
 describe Filterer::Base do
 
   it 'warns if starting_query is not overriden' do
@@ -166,6 +176,18 @@ describe Filterer::Base do
     it 'can change to desc' do
       FakeQuery.any_instance.should_receive(:order).with('baz DESC NULLS LAST').and_return(FakeQuery.new)
       filterer = SortingFiltererD.new(sort: 'foo', direction: 'desc')
+    end
+
+    it 'can distinguish between two regexps' do
+      FakeQuery.any_instance.should_receive(:order).with('zoo').and_return(FakeQuery.new)
+      filterer = SortingFiltererE.new(sort: 'zoo111')
+      filterer.sort.should == 'zoo111'
+    end
+
+    it 'can distinguish between two regexps part 2' do
+      FakeQuery.any_instance.should_receive(:order).with('111 ASC').and_return(FakeQuery.new)
+      filterer = SortingFiltererE.new(sort: 'foo111')
+      filterer.sort.should == 'foo111'
     end
 
     it 'throws an error when key is a regexp and no query string given' do
