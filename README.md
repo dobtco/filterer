@@ -111,28 +111,27 @@ PersonFilterer.new(params, organization: Organization.find(4))
 
 #### Sorting the results
 
-Filterer isn't too opinionated in this case, but here's what we use:
+Filterer provides a slightly different DSL for sorting your results. Here's a quick overview of the different ways to use it:
 
 ```ruby
 class PersonFilterer < Filterer::Base
-  ...
 
-  def valid_sort_options
-    {
-      'submitted' => 'submitted_at',
-      'popularity' => 'votes_count'
-    }
-  end
+  # '?sort=name' will order by LOWER(people.name). If there is no sort parameter, we'll default to this anyway.
+  sort_option 'name', 'LOWER(people.name)', default: true
 
-  def order_results
-    @direction = @params[:direction] == 'desc' ? 'DESC' : 'ASC'
-    @sort = @params[:sort].in?(valid_sort_options.keys) ? @params[:sort] : 'submitted'
-    @results = @results.order("#{valid_sort_options[@sort]} #{@direction}, people.id")
-  end
+  # '?sort=id' will order by id. This is used as a tiebreaker, so if two records have the same name, the one with the lowest id will come first.
+  sort_option 'id', tiebreaker: true
+
+  # '?sort=occupation' will order by occupation, with NULLS LAST.
+  sort_option 'occupation', nulls_last: true
+
+  # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the query and match data
+  sort_option Regexp.new('data([0-9]+)'), -> (query, match_data) {
+    query.order('data -> ?', match_data[1])
+  }
+
 end
 ```
-
-Note that if you define an `order_results` method, it will get called automatically.
 
 #### License
 MIT
