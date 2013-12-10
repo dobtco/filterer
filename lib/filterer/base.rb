@@ -109,7 +109,7 @@ module Filterer
         }.squish
       elsif get_sort_option(@sort)[:query_string_or_proc].is_a?(Proc)
         matches = get_sort_option(@sort)[:key].is_a?(Regexp) ? @sort.match(get_sort_option(@sort)[:key]) : nil
-        @results = get_sort_option(@sort)[:query_string_or_proc].call(@results, matches)
+        @results = get_sort_option(@sort)[:query_string_or_proc].call(@results, matches, self)
       end
     end
 

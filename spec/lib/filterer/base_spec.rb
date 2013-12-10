@@ -45,7 +45,7 @@ class SortingFiltererC < Filterer::Base
   end
 
   sort_option 'id', default: true
-  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches) { results.order(matches[1]) }
+  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.direction) }
 end
 
 class SortingFiltererD < Filterer::Base
@@ -153,7 +153,7 @@ describe Filterer::Base do
     end
 
     it 'can apply a proc' do
-      FakeQuery.any_instance.should_receive(:order).with('111').and_return(FakeQuery.new)
+      FakeQuery.any_instance.should_receive(:order).with('111 ASC').and_return(FakeQuery.new)
       filterer = SortingFiltererC.new(sort: 'foo111')
       filterer.sort.should == 'foo111'
     end

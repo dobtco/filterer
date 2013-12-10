@@ -126,7 +126,7 @@ class PersonFilterer < Filterer::Base
   sort_option 'occupation', nulls_last: true
 
   # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the query and match data
-  sort_option Regexp.new('data([0-9]+)'), -> (query, match_data) {
+  sort_option Regexp.new('data([0-9]+)'), -> (query, match_data, filterer) {
     query.order('data -> ?', match_data[1])
   }
 
