@@ -9,3 +9,4 @@ spec/dummy/.sass-cache
 coverage
 *.gem
 spec/dummy/filterer-test
+tmp/*

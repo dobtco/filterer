@@ -26,6 +26,10 @@ class SortingFiltererA < Filterer::Base
   sort_option 'id', default: true
 end
 
+class InheritedSortingFiltererA < SortingFiltererA
+end
+
+
 class SortingFiltererB < Filterer::Base
   def starting_query
     FakeQuery.new
@@ -127,6 +131,11 @@ describe Filterer::Base do
       filterer.sort.should == 'id'
     end
 
+    it 'can apply a default sort when inheriting a class' do
+      filterer = InheritedSortingFiltererA.new
+      filterer.sort.should == 'id'
+    end
+
     it 'can include a tiebreaker' do
       FakeQuery.any_instance.should_receive(:order).with(/thetiebreaker/).and_return(FakeQuery.new)
       filterer = SortingFiltererB.new
@@ -146,6 +155,7 @@ describe Filterer::Base do
     it 'can apply a proc' do
       FakeQuery.any_instance.should_receive(:order).with('111').and_return(FakeQuery.new)
       filterer = SortingFiltererC.new(sort: 'foo111')
+      filterer.sort.should == 'foo111'
     end
 
     it 'can put nulls last' do

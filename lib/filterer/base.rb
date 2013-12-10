@@ -12,6 +12,12 @@ module Filterer
         @sort_options ||= []
       end
 
+      def inherited(subclass)
+        if @sort_options.present?
+          subclass.sort_options = @sort_options
+        end
+      end
+
       def sort_option(key, query_string_or_proc = nil, opts = {})
         if query_string_or_proc.is_a?(Hash)
           opts, query_string_or_proc = query_string_or_proc.clone, nil
