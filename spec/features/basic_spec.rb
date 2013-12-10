@@ -55,4 +55,31 @@ describe 'Filterer' do
     end
   end
 
+  describe 'sorting' do
+    let!(:bill) { Person.create(name: 'Bill', email: 'foo@bar.com') }
+    let!(:adam) { Person.create(name: 'Adam', email: 'foo@bar.com') }
+
+    it 'sorts properly' do
+      visit people_path
+      find('.person:eq(1)').should have_text 'Adam'
+      find('.person:eq(2)').should have_text 'Bill'
+    end
+
+    it 'reverses sort' do
+      visit people_path(direction: 'desc')
+      find('.person:eq(1)').should have_text 'Bill'
+      find('.person:eq(2)').should have_text 'Adam'
+    end
+
+    it 'changes sort option' do
+      visit people_path(sort: 'id')
+      find('.person:eq(1)').should have_text 'Bill'
+      find('.person:eq(2)').should have_text 'Adam'
+
+      visit people_path(sort: 'id', direction: 'desc')
+      find('.person:eq(1)').should have_text 'Adam'
+      find('.person:eq(2)').should have_text 'Bill'
+    end
+  end
+
 end

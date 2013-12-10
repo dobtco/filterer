@@ -8,4 +8,7 @@ class PersonFilterer < Filterer::Base
     @results.where(name: x)
   end
 
+  sort_option 'name', default: true
+  sort_option 'id'
+
 end

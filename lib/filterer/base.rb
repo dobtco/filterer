@@ -1,9 +1,45 @@
 module Filterer
   class Base
 
+    IGNORED_PARAMS = [:page]
+
     attr_accessor :results, :meta, :direction, :sort, :params
 
-    IGNORED_PARAMS = [:page]
+    class << self
+      attr_accessor :sort_options
+
+      def sort_options
+        @sort_options ||= []
+      end
+
+      def sort_option(key, query_string_or_proc = nil, opts = {})
+        if query_string_or_proc.is_a?(Hash)
+          opts, query_string_or_proc = query_string_or_proc.clone, nil
+        end
+
+        if !query_string_or_proc
+          if key.is_a?(String)
+            query_string_or_proc = key
+          else
+            raise 'Please provide a query string or a proc.'
+          end
+        end
+
+        if key.is_a?(Regexp) && opts[:default]
+          raise "Default sort option can't have a Regexp key."
+        end
+
+        if query_string_or_proc.is_a?(Proc) && opts[:tiebreaker]
+          raise "Tiebreaker can't be a proc."
+        end
+
+        sort_options << {
+          key: key,
+          query_string_or_proc: query_string_or_proc,
+          opts: opts
+        }
+      end
+    end
 
     def initialize(params = {}, opts = {})
       @params, @opts = params, opts
@@ -54,8 +90,45 @@ module Filterer
     end
 
     def order_results
-      # noop
+      @direction = @params[:direction] == 'desc' ? 'DESC' : 'ASC'
+      @sort = (params[:sort] && get_sort_option(params[:sort])) ? params[:sort] : default_sort_param
+      return unless get_sort_option(@sort)
+
+      if get_sort_option(@sort)[:query_string_or_proc].is_a?(String)
+        @results = @results.order %Q{
+          #{get_sort_option(@sort)[:query_string_or_proc]}
+          #{@direction}
+          #{get_sort_option(@sort)[:opts][:nulls_last] ? 'NULLS LAST' : ''}
+          #{tiebreaker_sort_string ? ',' + tiebreaker_sort_string : ''}
+        }.squish
+      elsif get_sort_option(@sort)[:query_string_or_proc].is_a?(Proc)
+        matches = get_sort_option(@sort)[:key].is_a?(Regexp) ? @sort.match(get_sort_option(@sort)[:key]) : nil
+        @results = get_sort_option(@sort)[:query_string_or_proc].call(@results, matches)
+      end
     end
+
+    def get_sort_option(x)
+      self.class.sort_options.find { |sort_option|
+        if sort_option[:key].is_a?(Regexp)
+          x.match(sort_option[:key])
+        else # String
+          x == sort_option[:key]
+        end
+      }
+    end
+
+    def default_sort_param
+      self.class.sort_options.find { |sort_option|
+        sort_option[:opts][:default]
+      }.try(:[], :key)
+    end
+
+    def tiebreaker_sort_string
+      self.class.sort_options.find { |sort_option|
+        sort_option[:opts][:tiebreaker]
+      }.try(:[], :query_string_or_proc)
+    end
+
 
     def starting_query
       raise 'You must override this method!'

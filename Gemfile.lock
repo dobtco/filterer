@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    filterer (0.0.2)
+    filterer (0.0.3)
       rails (~> 4.0.0)
 
 GEM
