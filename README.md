@@ -1,4 +1,4 @@
-Filterer ![status](https://circleci.com/gh/dobtco/filterer.png?circle-token=4227dad9a04a91b070e9c25174f4035a2da6a828) [![Coverage Status](https://coveralls.io/repos/dobtco/filterer/badge.png)](https://coveralls.io/r/dobtco/filterer) [![code climate](https://d3s6mut3hikguw.cloudfront.net/github/dobtco/filterer.png)](https://codeclimate.com/github/dobtco/filterer) [![Gem Version](https://badge.fury.io/rb/filterer.png)](http://badge.fury.io/rb/filterer)
+Filterer ![status](https://circleci.com/gh/dobtco/filterer.png?circle-token=4227dad9a04a91b070e9c25174f4035a2da6a828)  [![Coverage Status](https://coveralls.io/repos/dobtco/filterer/badge.png)](https://coveralls.io/r/dobtco/filterer) [![code climate](https://d3s6mut3hikguw.cloudfront.net/github/dobtco/filterer.png)](https://codeclimate.com/github/dobtco/filterer) [![Gem Version](https://badge.fury.io/rb/filterer.png)](http://badge.fury.io/rb/filterer)
 ====
 
 Filterer lets your users easily filter results from your ActiveRecord models. What does that mean? Let's imagine a page in your application that lists the results of `Person.all`:
