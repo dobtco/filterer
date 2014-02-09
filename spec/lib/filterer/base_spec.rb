@@ -29,7 +29,6 @@ end
 class InheritedSortingFiltererA < SortingFiltererA
 end
 
-
 class SortingFiltererB < Filterer::Base
   def starting_query
     FakeQuery.new
@@ -66,6 +65,23 @@ class SortingFiltererE < Filterer::Base
   sort_option Regexp.new('zoo([0-9]+)'), -> (results, matches, filterer) { results.order('zoo') }
 end
 
+class PaginationFilterer < Filterer::Base
+  def starting_query
+    FakeQuery.new
+  end
+end
+
+class PaginationFiltererB < PaginationFilterer
+  per_page 30
+end
+
+class PaginationFiltererWithOverride < PaginationFilterer
+  per_page 20, allow_override: true
+end
+
+class PaginationFiltererInherit < PaginationFiltererB
+end
+
 describe Filterer::Base do
 
   it 'warns if starting_query is not overriden' do
@@ -75,7 +91,7 @@ describe Filterer::Base do
   it 'basic smoke test' do
     SmokeTestFilterer.any_instance.should_receive(:starting_query).and_return(f = FakeQuery.new)
     SmokeTestFilterer.any_instance.should_receive(:respond_to?).with(:custom_meta_data).and_return(false)
-    f.should_receive(:limit).with(10).and_return(f)
+    f.should_receive(:limit).with(20).and_return(f)
     f.should_receive(:offset).with(0).and_return(f)
 
     @filterer = SmokeTestFilterer.new
@@ -105,11 +121,11 @@ describe Filterer::Base do
   end
 
   it 'calculates more complex page numbers and totals' do
-    higher_count = 15
+    higher_count = 35
 
     SmokeTestFilterer.any_instance.should_receive(:starting_query).and_return(f = FakeQuery.new)
-    f.should_receive(:limit).with(10).and_return(f)
-    f.should_receive(:offset).with(10).and_return(f)
+    f.should_receive(:limit).with(20).and_return(f)
+    f.should_receive(:offset).with(20).and_return(f)
     stub_const("FakeQuery::COUNT", higher_count)
 
     @filterer = SmokeTestFilterer.new({ page: 2 }, { })
@@ -225,7 +241,32 @@ describe Filterer::Base do
         end
       }.to raise_error
     end
+  end
 
+  describe 'pagination' do
+    describe 'per_page' do
+      it 'defaults to 20' do
+        @filterer = PaginationFilterer.new
+        @filterer.meta[:per_page].should == 20
+      end
+
+      it 'can be set to another value' do
+        @filterer = PaginationFiltererB.new
+        @filterer.meta[:per_page].should == 30
+      end
+
+      it 'inherits when subclassing' do
+        @filterer = PaginationFiltererInherit.new
+        @filterer.meta[:per_page].should == 30
+      end
+
+      it 'can be overriden' do
+        @filterer = PaginationFiltererWithOverride.new
+        @filterer.meta[:per_page].should == 20
+        @filterer = PaginationFiltererWithOverride.new(per_page: 15)
+        @filterer.meta[:per_page].should == 15
+      end
+    end
   end
 
 end
