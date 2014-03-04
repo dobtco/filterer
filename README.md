@@ -103,6 +103,7 @@ class PersonFilterer < Filterer::Base
     @opts[:organization].people.where('deleted_at IS NULL')
   end
 end
+```
 
 #### Overriding per_page
 
