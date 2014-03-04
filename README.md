@@ -7,7 +7,7 @@ Filterer lets your users easily filter results from your ActiveRecord models. Wh
 Name              Email           Admin?
 ----              ----            ----
 Adam Becker       foo@bar.com     true
-Barack Obama      bo@wh.gov       false
+Barack Obama      bo@wh.gov       falsea
 Joe Biden         joe@biden.com   true
 ```
 
@@ -120,6 +120,8 @@ class PersonFilterer < Filterer::Base
   per_page 20, allow_override: true
 end
 ```
+
+> Now you can append `?per_page=50` to the URL.
 
 #### Sorting the results
 
