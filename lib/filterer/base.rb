@@ -6,15 +6,15 @@ module Filterer
     attr_accessor :results, :meta, :direction, :sort, :params, :opts
 
     class << self
-      attr_accessor :sort_options
+      attr_accessor :sort_options, :per_page_num, :per_page_allow_override
 
       def sort_options
         @sort_options ||= []
       end
 
       def inherited(subclass)
-        if @sort_options.present?
-          subclass.sort_options = @sort_options
+        %w(sort_options per_page_num per_page_allow_override).each do |x|
+          subclass.send("#{x}=", instance_variable_get("@#{x}"))
         end
       end
 
@@ -45,6 +45,11 @@ module Filterer
           opts: opts
         }
       end
+
+      def per_page(num, opts = {})
+        @per_page_num = num
+        @per_page_allow_override = opts[:allow_override]
+      end
     end
 
     def initialize(params = {}, opts = {})
@@ -60,8 +65,16 @@ module Filterer
     def setup_meta
       @meta = {
         page: [@params[:page].to_i, 1].max,
-        per_page: 10
+        per_page: get_per_page
       }
+    end
+
+    def get_per_page
+      if self.class.per_page_allow_override && @params[:per_page].present?
+        @params[:per_page]
+      else
+        self.class.per_page_num || 20
+      end
     end
 
     def find_results

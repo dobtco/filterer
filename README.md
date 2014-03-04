@@ -104,9 +104,20 @@ class PersonFilterer < Filterer::Base
   end
 end
 
-...
+#### Overriding per_page
 
-PersonFilterer.new(params, organization: Organization.find(4))
+```ruby
+class PersonFilterer < Filterer::Base
+  per_page 30 # defaults to 20
+end
+```
+
+#### Allowing the user to override per_page
+
+```ruby
+class PersonFilterer < Filterer::Base
+  per_page 20, allow_override: true
+end
 ```
 
 #### Sorting the results
