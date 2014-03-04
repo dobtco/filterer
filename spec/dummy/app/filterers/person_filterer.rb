@@ -11,4 +11,6 @@ class PersonFilterer < Filterer::Base
   sort_option 'name', default: true
   sort_option 'id'
 
+  per_page 10
+
 end
