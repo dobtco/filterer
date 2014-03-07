@@ -12,6 +12,12 @@ end
 
 class DefaultFilterer < Filterer::Base; end;
 
+class UnscopedFilterer < Filterer::Base
+  def starting_query
+    Person.select('name, email')
+  end
+end
+
 class SmokeTestFilterer < Filterer::Base
   def starting_query
     FakeQuery.new
@@ -266,6 +272,13 @@ describe Filterer::Base do
         @filterer = PaginationFiltererWithOverride.new(per_page: 15)
         @filterer.meta[:per_page].should == 15
       end
+    end
+  end
+
+  describe 'unscoping' do
+    it 'unscopes select' do
+      @filterer = UnscopedFilterer.new
+      @filterer.meta[:total].should == 0
     end
   end
 

@@ -86,7 +86,7 @@ module Filterer
       # Order results
       order_results
 
-      @meta[:total] = @results.count
+      @meta[:total] = @results.unscope(:select).count
       @meta[:last_page] = [(@meta[:total].to_f / @meta[:per_page]).ceil, 1].max
       @meta[:page] = [@meta[:last_page], @meta[:page]].min
 
