@@ -22,7 +22,7 @@ module Filterer
     def render_filterer_previous_link(filterer)
       content_tag(:li, class: filterer.meta[:page] == 1 ? "disabled" : '') do
         if filterer.meta[:page] == 1
-          content_tag(:span) { RIGHT_ARROW }
+          content_tag(:span) { LEFT_ARROW }
         else
           content_tag(:a, class: 'pagination-previous',
                       href: calculate_filterer_pagination_url(filterer.meta[:page] - 1)) { LEFT_ARROW }
