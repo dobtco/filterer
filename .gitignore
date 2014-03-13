@@ -10,3 +10,4 @@ coverage
 *.gem
 tmp/*
 spec/dummy/filterer-test
+Gemfile.lock
