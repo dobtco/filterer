@@ -1,6 +1,9 @@
 module Filterer
   module PaginationHelper
 
+    RIGHT_ARROW = '&rsaquo;'.html_safe
+    LEFT_ARROW = '&lsaquo;'.html_safe
+
     def render_filterer_pagination(filterer)
       content_tag(:div, class: 'pagination-wrapper') do
         content_tag(:ul, class: 'unstyled') do
@@ -19,10 +22,10 @@ module Filterer
     def render_filterer_previous_link(filterer)
       content_tag(:li, class: filterer.meta[:page] == 1 ? "disabled" : '') do
         if filterer.meta[:page] == 1
-          content_tag(:span) { '&rsaquo' }
+          content_tag(:span) { RIGHT_ARROW }
         else
           content_tag(:a, class: 'pagination-previous',
-                      href: calculate_filterer_pagination_url(filterer.meta[:page] - 1)) { '&lsaquo' }
+                      href: calculate_filterer_pagination_url(filterer.meta[:page] - 1)) { LEFT_ARROW }
         end
       end
     end
@@ -30,9 +33,9 @@ module Filterer
     def render_filterer_next_link(filterer)
       content_tag(:li, class: filterer.meta[:page] == filterer.meta[:last_page] ? "disabled" : '') do
         if filterer.meta[:page] == filterer.meta[:last_page]
-          content_tag(:span) { '&rsaquo' }
+          content_tag(:span) { RIGHT_ARROW }
         else
-          content_tag(:a, class: 'pagination-next', href: calculate_filterer_pagination_url(filterer.meta[:page] + 1)) { '&rsaquo' }
+          content_tag(:a, class: 'pagination-next', href: calculate_filterer_pagination_url(filterer.meta[:page] + 1)) { RIGHT_ARROW }
         end
       end
     end
