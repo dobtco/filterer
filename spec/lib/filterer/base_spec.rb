@@ -94,6 +94,12 @@ describe Filterer::Base do
     expect { DefaultFilterer.new }.to raise_error('You must override this method!')
   end
 
+  it 'allows start query in the opts hash' do
+    expect {
+      DefaultFilterer.new({}, starting_query: Person.select('name, email'))
+    }.to_not raise_error
+  end
+
   it 'basic smoke test' do
     SmokeTestFilterer.any_instance.should_receive(:starting_query).and_return(f = FakeQuery.new)
     SmokeTestFilterer.any_instance.should_receive(:respond_to?).with(:custom_meta_data).and_return(false)

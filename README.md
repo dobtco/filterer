@@ -105,6 +105,16 @@ class PersonFilterer < Filterer::Base
 end
 ```
 
+or
+
+```ruby
+class PersonFilterer < Filterer::Base
+end
+
+# In your controller...
+PersonFilterer.new(params, starting_query: @organization.people)
+```
+
 #### Overriding per_page
 
 ```ruby

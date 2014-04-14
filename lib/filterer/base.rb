@@ -78,7 +78,7 @@ module Filterer
     end
 
     def find_results
-      @results = starting_query
+      @results = opts.delete(:starting_query) || starting_query
 
       # Add params
       add_params_to_query
