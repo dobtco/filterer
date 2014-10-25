@@ -83,6 +83,8 @@ module Filterer
       # Add params
       add_params_to_query
 
+      return if @opts[:chainable]
+
       # Order results
       order_results
 
@@ -156,6 +158,11 @@ module Filterer
     def self.count(params = {}, opts = {})
       filterer = self.new(params, { count_only: true }.merge(opts))
       return filterer.meta[:total]
+    end
+
+    def self.chain(params = {}, opts = {})
+      filterer = self.new(params, { chainable: true }.merge(opts))
+      return filterer.results
     end
 
   end

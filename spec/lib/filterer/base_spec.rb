@@ -288,4 +288,11 @@ describe Filterer::Base do
     end
   end
 
+  describe 'chain' do
+    it 'chains properly' do
+      FakeQuery.any_instance.should_receive(:order).with(/foobar/).and_return(FakeQuery.new)
+      SortingFiltererA.chain({}).order('foobar')
+    end
+  end
+
 end
