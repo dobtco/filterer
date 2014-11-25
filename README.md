@@ -119,7 +119,7 @@ PersonFilterer.new(params, starting_query: @organization.people)
 
 ```ruby
 class PersonFilterer < Filterer::Base
-  per_page 30 # defaults to 20
+  self.per_page = 30 # defaults to 20
 end
 ```
 
@@ -127,11 +127,14 @@ end
 
 ```ruby
 class PersonFilterer < Filterer::Base
-  per_page 20, allow_override: true
+  self.per_page = 20
+  self.per_page_allow_override = true
 end
 ```
 
 > Now you can append `?per_page=50` to the URL.
+
+> Note: To prevent abuse, this value will still max-out at `1000` records per page.
 
 #### Sorting the results
 

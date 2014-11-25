@@ -78,11 +78,12 @@ class PaginationFilterer < Filterer::Base
 end
 
 class PaginationFiltererB < PaginationFilterer
-  per_page 30
+  self.per_page = 30
 end
 
 class PaginationFiltererWithOverride < PaginationFilterer
-  per_page 20, allow_override: true
+  self.per_page = 20
+  self.per_page_allow_override = true
 end
 
 class PaginationFiltererInherit < PaginationFiltererB
@@ -287,6 +288,11 @@ describe Filterer::Base do
         @filterer.meta[:per_page].should == 20
         @filterer = PaginationFiltererWithOverride.new(per_page: 15)
         @filterer.meta[:per_page].should == 15
+      end
+
+      it 'can not be overriden past max' do
+        @filterer = PaginationFiltererWithOverride.new(per_page: 100000)
+        @filterer.meta[:per_page].should == 1000
       end
     end
   end

@@ -5,51 +5,44 @@ module Filterer
 
     attr_accessor :results, :meta, :direction, :sort, :params, :opts
 
-    class << self
-      attr_accessor :sort_options, :per_page_num, :per_page_allow_override
+    class_attribute :sort_options
+    self.sort_options = []
 
-      def sort_options
-        @sort_options ||= []
+    class_attribute :per_page
+    self.per_page = 20
+
+    class_attribute :per_page_allow_override
+    self.per_page_allow_override = false
+
+    class_attribute :per_page_max
+    self.per_page_max = 1000
+
+    def self.sort_option(key, query_string_or_proc = nil, opts = {})
+      if query_string_or_proc.is_a?(Hash)
+        opts, query_string_or_proc = query_string_or_proc.clone, nil
       end
 
-      def inherited(subclass)
-        %w(sort_options per_page_num per_page_allow_override).each do |x|
-          subclass.send("#{x}=", instance_variable_get("@#{x}"))
+      if !query_string_or_proc
+        if key.is_a?(String)
+          query_string_or_proc = key
+        else
+          raise 'Please provide a query string or a proc.'
         end
       end
 
-      def sort_option(key, query_string_or_proc = nil, opts = {})
-        if query_string_or_proc.is_a?(Hash)
-          opts, query_string_or_proc = query_string_or_proc.clone, nil
-        end
-
-        if !query_string_or_proc
-          if key.is_a?(String)
-            query_string_or_proc = key
-          else
-            raise 'Please provide a query string or a proc.'
-          end
-        end
-
-        if key.is_a?(Regexp) && opts[:default]
-          raise "Default sort option can't have a Regexp key."
-        end
-
-        if query_string_or_proc.is_a?(Proc) && opts[:tiebreaker]
-          raise "Tiebreaker can't be a proc."
-        end
-
-        sort_options << {
-          key: key,
-          query_string_or_proc: query_string_or_proc,
-          opts: opts
-        }
+      if key.is_a?(Regexp) && opts[:default]
+        raise "Default sort option can't have a Regexp key."
       end
 
-      def per_page(num, opts = {})
-        @per_page_num = num
-        @per_page_allow_override = opts[:allow_override]
+      if query_string_or_proc.is_a?(Proc) && opts[:tiebreaker]
+        raise "Tiebreaker can't be a proc."
       end
+
+      self.sort_options += [{
+        key: key,
+        query_string_or_proc: query_string_or_proc,
+        opts: opts
+      }]
     end
 
     def initialize(params = {}, opts = {})
@@ -71,9 +64,9 @@ module Filterer
 
     def get_per_page
       if self.class.per_page_allow_override && @params[:per_page].present?
-        @params[:per_page]
+        [@params[:per_page], self.per_page_max].min
       else
-        self.class.per_page_num || 20
+        self.class.per_page
       end
     end
 
@@ -130,25 +123,25 @@ module Filterer
     end
 
     def get_sort_option(x)
-      self.class.sort_options.find { |sort_option|
+      self.class.sort_options.detect do |sort_option|
         if sort_option[:key].is_a?(Regexp)
           x.match(sort_option[:key])
         else # String
           x == sort_option[:key]
         end
-      }
+      end
     end
 
     def default_sort_param
-      self.class.sort_options.find { |sort_option|
+      self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:default]
-      }.try(:[], :key)
+      end.try(:[], :key)
     end
 
     def tiebreaker_sort_string
-      self.class.sort_options.find { |sort_option|
+      self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:tiebreaker]
-      }.try(:[], :query_string_or_proc)
+      end.try(:[], :query_string_or_proc)
     end
 
 
