@@ -46,7 +46,7 @@ module Filterer
       end
 
       def count(params = {}, opts = {})
-        self.new(params, { chainable: true }.merge(opts)).results.count
+        self.new(params, { meta_only: true }.merge(opts)).meta[:total]
       end
 
       def chain(params = {}, opts = {})
@@ -85,6 +85,7 @@ module Filterer
       return if @opts[:chainable]
       order_results
       add_meta
+      return if @opts[:meta_only]
 
       # Add custom meta data if we've defined the method
       @meta.merge!(self.custom_meta_data) if self.respond_to?(:custom_meta_data)
