@@ -159,9 +159,19 @@ describe Filterer::Base do
   end
 
   describe 'sorting' do
-    it 'does not sort by default' do
+    it 'orders by ID by default' do
       filterer = SmokeTestFilterer.new
       filterer.sort.should be_nil
+
+      expect_any_instance_of(FakeQuery).to(
+        receive_message_chain(:model, :table_name).
+          and_return('asdf')
+      )
+
+      expect_any_instance_of(FakeQuery).to receive(:order).
+        with('asdf.id ASC')
+
+      filterer.order_results
     end
 
     it 'can apply a default sort' do

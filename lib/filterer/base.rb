@@ -113,9 +113,10 @@ module Filterer
     def order_results
       @direction = @params[:direction] == 'desc' ? 'DESC' : 'ASC'
       @sort = (params[:sort] && get_sort_option(params[:sort])) ? params[:sort] : default_sort_param
-      return unless get_sort_option(@sort)
 
-      if get_sort_option(@sort)[:query_string_or_proc].is_a?(String)
+      if !get_sort_option(@sort)
+        @results = @results.order("#{@results.model.table_name}.id ASC")
+      elsif get_sort_option(@sort)[:query_string_or_proc].is_a?(String)
         @results = @results.order %Q{
           #{get_sort_option(@sort)[:query_string_or_proc]}
           #{@direction}
