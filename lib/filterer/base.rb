@@ -55,7 +55,7 @@ module Filterer
     end
 
     def initialize(params = {}, opts = {})
-      @params, @opts = params, opts
+      @params, @opts = params.dup, opts
       setup_meta
       find_results
     end

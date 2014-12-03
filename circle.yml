@@ -1,3 +1,7 @@
 machine:
   environment:
     COVERALLS_REPO_TOKEN: H70DLB6MMNGXp3Vz8smuPONUdXCRBne6e
+
+test:
+  override:
+    - script/cibuild
