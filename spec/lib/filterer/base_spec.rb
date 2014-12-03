@@ -130,7 +130,7 @@ describe Filterer::Base do
 
   it 'adds default params' do
     filterer = DefaultParamsFilterer.new({})
-    expect(filterer.params).to eq(foo: 'bar')
+    expect(filterer.params).to eq('foo' => 'bar')
   end
 
   it 'basic smoke test' do
