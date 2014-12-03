@@ -3,7 +3,7 @@ require 'spec_helper'
 module PaginatorSpecHelper
   def assert_paginator_calculate_pages(last_page, current_page, expected_result)
     f = Filterer::Paginator.new(OpenStruct.new(meta: { last_page: last_page, page: current_page }))
-    f.pages.should == expected_result
+    expect(f.pages).to eq(expected_result)
   end
 end
 
