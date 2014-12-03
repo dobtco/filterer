@@ -22,7 +22,7 @@ One answer could be your controller. You could progressively build up a query, l
 @results = @results.where(admin: true) if params[:admin].present?
 ```
 
-But you can see how that could get ugly fast. Especially when you add in sorting, and pagination.
+But you can see how that could get ugly fast. Especially when you add in sorting and pagination.
 
 Another answer could be in your models. But passing a bunch of query parameters to a model isn't really a good practice either.
 
@@ -143,16 +143,19 @@ Filterer provides a slightly different DSL for sorting your results. Here's a qu
 ```ruby
 class PersonFilterer < Filterer::Base
 
-  # '?sort=name' will order by LOWER(people.name). If there is no sort parameter, we'll default to this anyway.
+  # '?sort=name' will order by LOWER(people.name). If there is no sort parameter, 
+  # we'll default to this anyway.
   sort_option 'name', 'LOWER(people.name)', default: true
 
-  # '?sort=id' will order by id. This is used as a tiebreaker, so if two records have the same name, the one with the lowest id will come first.
+  # '?sort=id' will order by id. This is used as a tiebreaker, so if two records 
+  # have the same name, the one with the lowest id will come first.
   sort_option 'id', tiebreaker: true
 
   # '?sort=occupation' will order by occupation, with NULLS LAST.
   sort_option 'occupation', nulls_last: true
 
-  # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the query and match data
+  # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the 
+  # query and match data
   sort_option Regexp.new('data([0-9]+)'), -> (query, match_data, filterer) {
     query.order('data -> ?', match_data[1])
   }
