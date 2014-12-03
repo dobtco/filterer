@@ -132,7 +132,7 @@ class PersonFilterer < Filterer::Base
 end
 ```
 
-> Now you can append `?per_page=50` to the URL.
+Now you can append `?per_page=50` to the URL.
 
 > Note: To prevent abuse, this value will still max-out at `1000` records per page.
 
