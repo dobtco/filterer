@@ -1,4 +1,4 @@
-Filterer ![status](https://circleci.com/gh/dobtco/filterer.png?circle-token=4227dad9a04a91b070e9c25174f4035a2da6a828)  [![Coverage Status](https://coveralls.io/repos/dobtco/filterer/badge.png)](https://coveralls.io/r/dobtco/filterer) [![code climate](https://d3s6mut3hikguw.cloudfront.net/github/dobtco/filterer.png)](https://codeclimate.com/github/dobtco/filterer) [![Gem Version](https://badge.fury.io/rb/filterer.png)](http://badge.fury.io/rb/filterer)
+Filterer [![status]](https://circleci.com/gh/dobtco/filterer)  [![coverage]](https://coveralls.io/r/dobtco/filterer) [![codeclimate]](https://codeclimate.com/github/dobtco/filterer) [![gem]](http://badge.fury.io/rb/filterer)
 ====
 
 Filterer lets your users easily filter results from your ActiveRecord models. What does that mean? Let's imagine a page in your application that lists the results of `Person.all`:
@@ -143,18 +143,18 @@ Filterer provides a slightly different DSL for sorting your results. Here's a qu
 ```ruby
 class PersonFilterer < Filterer::Base
 
-  # '?sort=name' will order by LOWER(people.name). If there is no sort parameter, 
+  # '?sort=name' will order by LOWER(people.name). If there is no sort parameter,
   # we'll default to this anyway.
   sort_option 'name', 'LOWER(people.name)', default: true
 
-  # '?sort=id' will order by id. This is used as a tiebreaker, so if two records 
+  # '?sort=id' will order by id. This is used as a tiebreaker, so if two records
   # have the same name, the one with the lowest id will come first.
   sort_option 'id', tiebreaker: true
 
   # '?sort=occupation' will order by occupation, with NULLS LAST.
   sort_option 'occupation', nulls_last: true
 
-  # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the 
+  # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the
   # query and match data
   sort_option Regexp.new('data([0-9]+)'), -> (query, match_data, filterer) {
     query.order('data -> ?', match_data[1])
@@ -164,4 +164,9 @@ end
 ```
 
 #### License
-MIT
+[MIT](http://dobt.mit-license.org)
+
+[status]: https://circleci-badges.herokuapp.com/dobtco/filterer/4227dad9a04a91b070e9c25174f4035a2da6a828
+[coverage]: https://img.shields.io/coveralls/dobtco/filterer.svg
+[codeclimate]: https://img.shields.io/codeclimate/github/dobtco/filterer.svg
+[gem]: https://img.shields.io/gem/v/filterer.svg
