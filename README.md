@@ -60,6 +60,13 @@ class PersonFilterer < Filterer::Base
   def param_admin(x)
     @results.where(admin: true)
   end
+
+  # Optional default params
+  def defaults
+    {
+      direction: 'desc'
+    }
+  end
 end
 ```
 

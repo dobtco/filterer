@@ -12,6 +12,27 @@ end
 
 class DefaultFilterer < Filterer::Base; end;
 
+class MutationFilterer < Filterer::Base
+  def starting_query
+    # This would really be doing it wrong...
+    params[:foo] = 'bar'
+
+    FakeQuery.new
+  end
+end
+
+class DefaultParamsFilterer < Filterer::Base
+  def starting_query
+    FakeQuery.new
+  end
+
+  def defaults
+    {
+      foo: 'bar'
+    }
+  end
+end
+
 class UnscopedFilterer < Filterer::Base
   def starting_query
     Person.select('name, email')
@@ -99,6 +120,17 @@ describe Filterer::Base do
     expect {
       DefaultFilterer.new({}, starting_query: Person.select('name, email'))
     }.to_not raise_error
+  end
+
+  it 'does not mutate the params hash' do
+    params = {}
+    filterer = MutationFilterer.new(params)
+    expect(params).to eq({})
+  end
+
+  it 'adds default params' do
+    filterer = DefaultParamsFilterer.new({})
+    expect(filterer.params).to eq(foo: 'bar')
   end
 
   it 'basic smoke test' do

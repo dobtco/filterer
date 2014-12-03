@@ -54,8 +54,12 @@ module Filterer
       end
     end
 
+    def defaults
+      {}
+    end
+
     def initialize(params = {}, opts = {})
-      @params, @opts = params.dup, opts
+      @params, @opts = defaults.merge(params), opts
       setup_meta
       find_results
     end
