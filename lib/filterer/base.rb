@@ -86,8 +86,9 @@ module Filterer
     def find_results
       @results = opts.delete(:starting_query) || starting_query
       add_params_to_query
-      return if @opts[:chainable]
+      return if @opts[:chainable] && !@opts[:include_ordering]
       order_results
+      return if @opts[:chainable]
       add_meta
       return if @opts[:meta_only]
 
