@@ -170,6 +170,28 @@ class PersonFilterer < Filterer::Base
 end
 ```
 
+#### Chaining
+
+An option is available to chain additional calls onto the filterer query.
+
+```ruby
+class PeopleController < ApplicationController
+  def index
+    @filterer = PersonFilterer.chain(params).my_custom_method
+  end
+end
+```
+
+By default, chaining will _not_ apply ordering clauses. To obey ordering params (as configured with `sort_option`), pass the `:include_ordering` option to `chain`:
+
+```ruby
+class PeopleController < ApplicationController
+  def index
+    @filterer = PersonFilterer.chain(params, include_ordering: true).my_custom_method
+  end
+end
+```
+
 #### License
 [MIT](http://dobt.mit-license.org)
 
