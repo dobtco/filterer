@@ -92,7 +92,7 @@ Now, when a user visits `/people`, they'll see Adam, Barack, and Joe, all three 
 
 #### Pagination
 
-Filterer supports basic pagination (described here). For advanced functionality or integrating with other gems, see [alternative solutions section](#alternative-pagination-solutions).
+Filterer includes its own pagination logic (described here). To use filterer with other gems, see the [alternative solutions section](#alternative-pagination-solutions). (This will likely be the supported behavior in the next major release.)
 
 In your controller:
 ```ruby
@@ -186,15 +186,7 @@ end
 
 In the view, we can then skip the call to `results` (i.e. `@filterer.each` vs `@filterer.results.each`).
 
-By default, chaining will _not_ apply ordering clauses. To obey ordering params (as configured with `sort_option`), pass the `:include_ordering` option to `chain`:
-
-```ruby
-class PeopleController < ApplicationController
-  def index
-    @filterer = PersonFilterer.chain(params, include_ordering: true).my_custom_method
-  end
-end
-```
+(By default, chaining will _not_ apply ordering clauses. To obey ordering params, pass the `:include_ordering` option to `chain`.)
 
 #### Alternative Pagination Solutions
 
@@ -205,7 +197,7 @@ Using the `chain` approach, we can control pagination ourselves:
 ```ruby
 class PeopleController < ApplicationController
   def index
-    @filterer = PersonFilterer.chain(params, include_ordering: true).page(params[:page]).per(10)
+    @filterer = PersonFilterer.chain(params).page(params[:page]).per(10)
   end
 end
 ```
