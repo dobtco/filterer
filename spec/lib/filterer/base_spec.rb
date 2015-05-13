@@ -338,8 +338,14 @@ describe Filterer::Base do
 
   describe 'chain' do
     it 'chains properly' do
+      expect_any_instance_of(FakeQuery).to_not receive(:order).with(/id/)
       expect_any_instance_of(FakeQuery).to receive(:order).with(/foobar/).and_return(FakeQuery.new)
       SortingFiltererA.chain({}).order('foobar')
+    end
+
+    it 'uses the :include_ordering option' do
+      expect_any_instance_of(FakeQuery).to receive(:order).with(/id/).and_return(FakeQuery.new)
+      SortingFiltererA.chain({}, include_ordering: true)
     end
   end
 
