@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module BasicSpecHelper
   def ensure_page_links(*args)
-    expect(page).to have_selector('.pagination-wrapper')
+    expect(page).to have_selector('nav.pagination')
 
     args.each do |x|
       if x.is_a?(Integer)
@@ -27,14 +27,14 @@ describe 'Filterer', :type => :feature do
     end
 
     it 'renders the pagination correctly' do
-      ensure_page_links(1, 2, 3, 4, 5, 6, 7, 8, 9, '…', 29, 30)
-      expect(page).to have_selector('li.active a', text: '1')
+      ensure_page_links(2, 3, 4, 5)
+      expect(page).to have_selector('span.current', text: '1')
     end
 
     it 'properly links between pages' do
       click_link '2'
-      ensure_page_links(1, 2, 3, 4, 5, 6, 7, 8, 9, '…', 29, 30)
-      expect(page).to have_selector('li.active a', text: '2')
+      ensure_page_links(1, 3, 4, 5, 6)
+      expect(page).to have_selector('span.current', text: '2')
     end
   end
 

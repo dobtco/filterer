@@ -1,7 +1,5 @@
 class PeopleController < ApplicationController
-
   def index
-    @filterer = PersonFilterer.new(params)
+    @people = PersonFilterer.filter(params)
   end
-
 end

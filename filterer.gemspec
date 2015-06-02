@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
+  s.add_dependency "kaminari", ">= 0.16.0"
   s.add_dependency "rails", ">= 4.0.0"
 
   s.add_development_dependency 'benchmark-ips'
@@ -25,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'database_cleaner'
   s.add_development_dependency 'guard-rspec'
   s.add_development_dependency 'launchy'
+  s.add_development_dependency 'pry'
   s.add_development_dependency 'rspec-rails'
   s.add_development_dependency 'sqlite3'
   s.add_development_dependency 'terminal-notifier-guard'

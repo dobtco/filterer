@@ -2,7 +2,12 @@ module Filterer
   class Base
     IGNORED_PARAMS = %w(page)
 
-    attr_accessor :results, :meta, :direction, :sort, :params, :opts
+    attr_accessor :results,
+                  :meta,
+                  :direction,
+                  :sort,
+                  :params,
+                  :opts
 
     class_attribute :sort_options
     self.sort_options = []
@@ -10,13 +15,14 @@ module Filterer
     class_attribute :per_page
     self.per_page = 20
 
-    class_attribute :per_page_allow_override
-    self.per_page_allow_override = false
+    class_attribute :allow_per_page_override
+    self.allow_per_page_override = false
 
     class_attribute :per_page_max
     self.per_page_max = 1000
 
     class << self
+      # Macro for adding sort options
       def sort_option(key, query_string_or_proc = nil, opts = {})
         if query_string_or_proc.is_a?(Hash)
           opts, query_string_or_proc = query_string_or_proc.clone, nil
@@ -45,106 +51,104 @@ module Filterer
         }]
       end
 
-      def count(params = {}, opts = {})
-        self.new(params, { meta_only: true }.merge(opts)).meta[:total]
+      # Public API
+      # @return [ActiveRecord::Association]
+      def filter(*args)
+        new(*args).results
       end
+    end
 
-      def chain(params = {}, opts = {})
-        self.new(params, { chainable: true }.merge(opts)).results
-      end
+    def initialize(params = {}, opts = {})
+      self.params = defaults.merge(params).with_indifferent_access
+      self.opts = opts
+      self.results = opts.delete(:starting_query) || starting_query
+      add_params_to_query
+      order_results unless opts[:skip_ordering]
+      paginate_results unless opts[:skip_pagination]
+
+      # Add custom meta data if we've defined the method
+      # @meta.merge!(self.custom_meta_data) if self.respond_to?(:custom_meta_data)
     end
 
     def defaults
       {}
     end
 
-    def initialize(params = {}, opts = {})
-      @params, @opts = defaults.merge(params).with_indifferent_access, opts
-      setup_meta
-      find_results
+    def starting_query
+      raise 'You must override this method!'
     end
 
-    def paginator
-      @paginator ||= Filterer::Paginator.new(self)
-    end
+    private
 
-    def setup_meta
-      @meta = {
-        page: [@params[:page].to_i, 1].max,
-        per_page: get_per_page
-      }
-    end
-
-    def get_per_page
-      if self.class.per_page_allow_override && @params[:per_page].present?
-        [@params[:per_page], self.per_page_max].min
-      else
-        self.class.per_page
+    def paginate_results
+      if per_page
+        self.results = results.page(current_page).per(per_page)
       end
     end
 
-    def find_results
-      @results = opts.delete(:starting_query) || starting_query
-      add_params_to_query
-      return if @opts[:chainable] && !@opts[:include_ordering]
-      order_results
-      return if @opts[:chainable]
-      add_meta
-      return if @opts[:meta_only]
-
-      # Add custom meta data if we've defined the method
-      @meta.merge!(self.custom_meta_data) if self.respond_to?(:custom_meta_data)
-
-      # Return the paginated results
-      @results = @results.limit(@meta[:per_page]).offset((@meta[:page] - 1)*@meta[:per_page])
-    end
-
-    def add_meta
-      @meta[:total] = @results.unscope(:select).count
-      @meta[:last_page] = [(@meta[:total].to_f / @meta[:per_page]).ceil, 1].max
-      @meta[:page] = [@meta[:last_page], @meta[:page]].min
-    end
-
     def add_params_to_query
-      @params.reject { |k, v| k.to_s.in?(IGNORED_PARAMS) }
-             .select { |k, v| v.present? }
-             .each do |k, v|
-
+      present_params.each do |k, v|
         method_name = "param_#{k}"
-        @results = respond_to?(method_name) ? send(method_name, v) : @results
+
+        if respond_to?(method_name)
+          self.results = send(method_name, v)
+        end
+      end
+    end
+
+    def present_params
+      params.select do |k, v|
+        !k.to_s.in?(IGNORED_PARAMS) &&
+        v.present?
       end
     end
 
     def order_results
-      @direction = @params[:direction] == 'desc' ? 'DESC' : 'ASC'
-      @sort = (params[:sort] && get_sort_option(params[:sort])) ? params[:sort] : default_sort_param
+      self.direction = params[:direction].try(:downcase) == 'desc' ? 'desc' : 'asc'
+      self.sort = if (params[:sort] && get_sort_option(params[:sort]))
+                    params[:sort]
+                  else
+                    default_sort_param
+                  end
 
-      if !get_sort_option(@sort)
-        @results = @results.order default_sort_sql
-      elsif get_sort_option(@sort)[:query_string_or_proc].is_a?(String)
-        @results = @results.order basic_sort_sql
-      elsif get_sort_option(@sort)[:query_string_or_proc].is_a?(Proc)
+      if !get_sort_option(sort)
+        self.results = results.order default_sort_sql
+      elsif get_sort_option(sort)[:query_string_or_proc].is_a?(String)
+        self.results = results.order basic_sort_sql
+      elsif get_sort_option(sort)[:query_string_or_proc].is_a?(Proc)
         apply_sort_proc
       end
     end
 
     def default_sort_sql
-      "#{@results.model.table_name}.id ASC"
+      "#{results.model.table_name}.id asc"
     end
 
     def basic_sort_sql
       %{
-        #{get_sort_option(@sort)[:query_string_or_proc]}
-        #{@direction}
-        #{get_sort_option(@sort)[:opts][:nulls_last] ? 'NULLS LAST' : ''}
+        #{get_sort_option(sort)[:query_string_or_proc]}
+        #{direction}
+        #{get_sort_option(sort)[:opts][:nulls_last] ? 'NULLS LAST' : ''}
         #{tiebreaker_sort_string ? ',' + tiebreaker_sort_string : ''}
       }.squish
     end
 
+    def per_page
+      if self.class.allow_per_page_override && params[:per_page].present?
+        [params[:per_page], self.per_page_max].min
+      else
+        self.class.per_page
+      end
+    end
+
+    def current_page
+      [params[:page].to_i, 1].max
+    end
+
     def apply_sort_proc
-      sort_key = get_sort_option(@sort)[:key]
-      matches = sort_key.is_a?(Regexp) && @sort.match(sort_key)
-      @results = get_sort_option(@sort)[:query_string_or_proc].call(@results, matches, self)
+      sort_key = get_sort_option(sort)[:key]
+      matches = sort_key.is_a?(Regexp) && sort.match(sort_key)
+      self.results = get_sort_option(sort)[:query_string_or_proc].call(results, matches, self)
     end
 
     def get_sort_option(x)
@@ -167,10 +171,6 @@ module Filterer
       self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:tiebreaker]
       end.try(:[], :query_string_or_proc)
-    end
-
-    def starting_query
-      raise 'You must override this method!'
     end
   end
 end

@@ -1,7 +1,7 @@
-<% @filterer.results.each do |person| %>
+<% @people.each do |person| %>
   <div class='person'>
     person <%= person.id %> <%= person.name %>
   </div>
 <% end %>
 
-<%= render_filterer_pagination(@filterer) %>
+<%= paginate(@people) %>

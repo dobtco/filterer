@@ -7,6 +7,14 @@ class FakeQuery
     self
   end
 
+  def to_str
+    'FakeQuery'
+  end
+
+  def to_ary
+    ['FakeQuery']
+  end
+
   def count(*args); COUNT end;
 end
 
@@ -104,14 +112,13 @@ end
 
 class PaginationFiltererWithOverride < PaginationFilterer
   self.per_page = 20
-  self.per_page_allow_override = true
+  self.allow_per_page_override = true
 end
 
 class PaginationFiltererInherit < PaginationFiltererB
 end
 
 describe Filterer::Base do
-
   it 'warns if starting_query is not overriden' do
     expect { DefaultFilterer.new }.to raise_error('You must override this method!')
   end
@@ -133,86 +140,42 @@ describe Filterer::Base do
     expect(filterer.params).to eq('foo' => 'bar')
   end
 
-  it 'basic smoke test' do
-    expect_any_instance_of(SmokeTestFilterer).to receive(:starting_query).and_return(f = FakeQuery.new)
-    expect_any_instance_of(SmokeTestFilterer).to receive(:respond_to?).with(:custom_meta_data).and_return(false)
-    expect(f).to receive(:limit).with(20).and_return(f)
-    expect(f).to receive(:offset).with(0).and_return(f)
-
-    @filterer = SmokeTestFilterer.new
-    expect(@filterer.meta[:page]).to eq(1)
-    expect(@filterer.meta[:last_page]).to eq(1)
-    expect(@filterer.meta[:total]).to eq(FakeQuery::COUNT)
-  end
-
   it 'passes parameters to the correct methods' do
     expect_any_instance_of(SmokeTestFilterer).to receive(:param_foo).with('bar').and_return(FakeQuery.new)
-    @filterer = SmokeTestFilterer.new({ foo: 'bar' })
+    SmokeTestFilterer.filter(foo: 'bar')
   end
 
   it 'does not pass the :page parameter' do
     expect_any_instance_of(SmokeTestFilterer).not_to receive(:param_page)
-    @filterer = SmokeTestFilterer.new({ page: 'bar' })
+    SmokeTestFilterer.filter(page: 'bar')
   end
 
   it 'does not pass blank parameters' do
     expect_any_instance_of(SmokeTestFilterer).not_to receive(:param_foo)
-    @filterer = SmokeTestFilterer.new({ foo: '' })
-  end
-
-  it 'has a paginator' do
-    @filterer = SmokeTestFilterer.new({ foo: '' })
-    expect(@filterer.paginator).to be_a(Filterer::Paginator)
-  end
-
-  it 'calculates more complex page numbers and totals' do
-    higher_count = 35
-
-    expect_any_instance_of(SmokeTestFilterer).to receive(:starting_query).and_return(f = FakeQuery.new)
-    expect(f).to receive(:limit).with(20).and_return(f)
-    expect(f).to receive(:offset).with(20).and_return(f)
-    stub_const("FakeQuery::COUNT", higher_count)
-
-    @filterer = SmokeTestFilterer.new({ page: 2 }, { })
-    expect(@filterer.meta[:page]).to eq(2)
-    expect(@filterer.meta[:last_page]).to eq(2)
-    expect(@filterer.meta[:total]).to eq(higher_count)
-  end
-
-  it 'can count without all the other stuff' do
-    expect_any_instance_of(FakeQuery).not_to receive(:limit)
-    expect_any_instance_of(SmokeTestFilterer).to receive(:param_foo).with('bar').and_return(FakeQuery.new)
-    expect(SmokeTestFilterer.count({ foo: 'bar' })).to eq(FakeQuery::COUNT)
-  end
-
-  it 'can add custom meta data' do
-    allow_any_instance_of(SmokeTestFilterer).to receive(:custom_meta_data).and_return({ bar: 'baz' })
-    @filterer = SmokeTestFilterer.new
-    expect(@filterer.meta[:bar]).to eq('baz')
+    SmokeTestFilterer.new(foo: '')
   end
 
   describe 'sorting' do
     it 'orders by ID by default' do
-      filterer = SmokeTestFilterer.new
-      expect(filterer.sort).to be_nil
-
       expect_any_instance_of(FakeQuery).to(
         receive_message_chain(:model, :table_name).
           and_return('asdf')
       )
 
       expect_any_instance_of(FakeQuery).to receive(:order).
-        with('asdf.id ASC')
+        with('asdf.id asc').
+        and_return(FakeQuery.new)
 
-      filterer.order_results
+      filterer = SmokeTestFilterer.new
+      expect(filterer.sort).to be_nil
     end
 
-    it 'can apply a default sort' do
+    it 'applies a default sort' do
       filterer = SortingFiltererA.new
       expect(filterer.sort).to eq('id')
     end
 
-    it 'can apply a default sort when inheriting a class' do
+    it 'applies a default sort when inheriting a class' do
       filterer = InheritedSortingFiltererA.new
       expect(filterer.sort).to eq('id')
     end
@@ -234,18 +197,18 @@ describe Filterer::Base do
     end
 
     it 'can apply a proc' do
-      expect_any_instance_of(FakeQuery).to receive(:order).with('111 ASC').and_return(FakeQuery.new)
+      expect_any_instance_of(FakeQuery).to receive(:order).with('111 asc').and_return(FakeQuery.new)
       filterer = SortingFiltererC.new(sort: 'foo111')
       expect(filterer.sort).to eq('foo111')
     end
 
     it 'can put nulls last' do
-      expect_any_instance_of(FakeQuery).to receive(:order).with('baz ASC NULLS LAST').and_return(FakeQuery.new)
+      expect_any_instance_of(FakeQuery).to receive(:order).with('baz asc NULLS LAST').and_return(FakeQuery.new)
       filterer = SortingFiltererD.new(sort: 'foo')
     end
 
     it 'can change to desc' do
-      expect_any_instance_of(FakeQuery).to receive(:order).with('baz DESC NULLS LAST').and_return(FakeQuery.new)
+      expect_any_instance_of(FakeQuery).to receive(:order).with('baz desc NULLS LAST').and_return(FakeQuery.new)
       filterer = SortingFiltererD.new(sort: 'foo', direction: 'desc')
     end
 
@@ -256,7 +219,7 @@ describe Filterer::Base do
     end
 
     it 'can distinguish between two regexps part 2' do
-      expect_any_instance_of(FakeQuery).to receive(:order).with('111 ASC').and_return(FakeQuery.new)
+      expect_any_instance_of(FakeQuery).to receive(:order).with('111 asc').and_return(FakeQuery.new)
       filterer = SortingFiltererE.new(sort: 'foo111')
       expect(filterer.sort).to eq('foo111')
     end
@@ -301,52 +264,50 @@ describe Filterer::Base do
   describe 'pagination' do
     describe 'per_page' do
       it 'defaults to 20' do
-        @filterer = PaginationFilterer.new
-        expect(@filterer.meta[:per_page]).to eq(20)
+        filterer = PaginationFilterer.new
+        expect(filterer.send(:per_page)).to eq(20)
       end
 
       it 'can be set to another value' do
-        @filterer = PaginationFiltererB.new
-        expect(@filterer.meta[:per_page]).to eq(30)
+        filterer = PaginationFiltererB.new
+        expect(filterer.send(:per_page)).to eq(30)
       end
 
       it 'inherits when subclassing' do
-        @filterer = PaginationFiltererInherit.new
-        expect(@filterer.meta[:per_page]).to eq(30)
+        filterer = PaginationFiltererInherit.new
+        expect(filterer.send(:per_page)).to eq(30)
       end
 
       it 'can be overriden' do
-        @filterer = PaginationFiltererWithOverride.new
-        expect(@filterer.meta[:per_page]).to eq(20)
-        @filterer = PaginationFiltererWithOverride.new(per_page: 15)
-        expect(@filterer.meta[:per_page]).to eq(15)
+        filterer = PaginationFiltererWithOverride.new
+        expect(filterer.send(:per_page)).to eq(20)
+        filterer = PaginationFiltererWithOverride.new(per_page: 15)
+        expect(filterer.send(:per_page)).to eq(15)
       end
 
       it 'can not be overriden past max' do
-        @filterer = PaginationFiltererWithOverride.new(per_page: 100000)
-        expect(@filterer.meta[:per_page]).to eq(1000)
+        filterer = PaginationFiltererWithOverride.new(per_page: 100000)
+        expect(filterer.send(:per_page)).to eq(1000)
       end
     end
   end
 
   describe 'unscoping' do
     it 'unscopes select' do
-      @filterer = UnscopedFilterer.new
-      expect(@filterer.meta[:total]).to eq(0)
+      results = UnscopedFilterer.filter
+      expect(results.total_count).to eq(0)
     end
   end
 
-  describe 'chain' do
-    it 'chains properly' do
-      expect_any_instance_of(FakeQuery).to_not receive(:order).with(/id/)
-      expect_any_instance_of(FakeQuery).to receive(:order).with(/foobar/).and_return(FakeQuery.new)
-      SortingFiltererA.chain({}).order('foobar')
+  describe 'options' do
+    it 'skips ordering' do
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:order_results)
+      filterer = DefaultParamsFilterer.filter({}, skip_ordering: true)
     end
 
-    it 'uses the :include_ordering option' do
-      expect_any_instance_of(FakeQuery).to receive(:order).with(/id/).and_return(FakeQuery.new)
-      SortingFiltererA.chain({}, include_ordering: true)
+    it 'skips pagination' do
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
+      filterer = DefaultParamsFilterer.filter({}, skip_pagination: true)
     end
   end
-
 end

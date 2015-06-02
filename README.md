@@ -137,7 +137,7 @@ end
 ```ruby
 class PersonFilterer < Filterer::Base
   self.per_page = 20
-  self.per_page_allow_override = true
+  self.allow_per_page_override = true
 end
 ```
 
