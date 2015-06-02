@@ -13,9 +13,16 @@
 
 ActiveRecord::Schema.define(version: 20131117183023) do
 
+  create_table "companies", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "people", force: true do |t|
     t.string   "name"
     t.string   "email"
+    t.integer  "company_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
