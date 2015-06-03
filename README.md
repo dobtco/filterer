@@ -153,7 +153,7 @@ class PersonFilterer < Filterer::Base
   # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the
   # query and match data
   sort_option Regexp.new('data([0-9]+)'), -> (query, matches, filterer) {
-    query.order "(ratings -> '#{matches[1]}') #{filterer.sort_direction}"
+    query.order "(ratings -> '#{matches[1]}') #{filterer.direction}"
   }
 end
 ```

@@ -91,7 +91,7 @@ class SortingFiltererC < Filterer::Base
   end
 
   sort_option 'id', default: true
-  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.sort_direction) }
+  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.direction) }
 end
 
 class SortingFiltererD < Filterer::Base
@@ -108,7 +108,7 @@ class SortingFiltererE < Filterer::Base
   end
 
   sort_option 'id', default: true
-  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.sort_direction) }
+  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.direction) }
   sort_option Regexp.new('zoo([0-9]+)'), -> (results, matches, filterer) { results.order('zoo') }
 end
 
@@ -190,11 +190,13 @@ describe Filterer::Base do
     it 'applies a default sort' do
       expect_any_instance_of(FakeQuery).to receive(:order).with('id asc').and_return(FakeQuery.new)
       filterer = SortingFiltererA.new
+      expect(filterer.sort).to eq 'id'
     end
 
     it 'applies a default sort when inheriting a class' do
       expect_any_instance_of(FakeQuery).to receive(:order).with('id asc').and_return(FakeQuery.new)
       filterer = InheritedSortingFiltererA.new
+      expect(filterer.sort).to eq 'id'
     end
 
     it 'can include a tiebreaker' do
@@ -205,6 +207,7 @@ describe Filterer::Base do
     it 'can match by regexp' do
       expect_any_instance_of(FakeQuery).to receive(:order).with('111 asc').and_return(FakeQuery.new)
       filterer = SortingFiltererC.new(sort: 'foo111')
+      expect(filterer.sort).to eq 'foo111'
     end
 
     it 'does not choke on a nil param' do

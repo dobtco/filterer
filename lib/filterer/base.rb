@@ -74,8 +74,18 @@ module Filterer
       raise 'You must override this method!'
     end
 
-    def sort_direction
+    def direction
       params[:direction].try(:downcase) == 'desc' ? 'desc' : 'asc'
+    end
+
+    def sort
+      @sort ||= begin
+        if params[:sort] && (opt = find_sort_option_from_param(params[:sort]))
+          params[:sort]
+        else
+          default_sort_option.try(:[], :key)
+        end
+      end
     end
 
     private
@@ -145,13 +155,7 @@ module Filterer
     end
 
     def sort_option
-      @sort_option ||= begin
-        if params[:sort] && (opt = find_sort_option_from_param(params[:sort]))
-          opt
-        else
-          default_sort_option
-        end
-      end
+      @sort_option ||= find_sort_option_from_param(sort)
     end
 
     def find_sort_option_from_param(x)
@@ -171,7 +175,7 @@ module Filterer
     def basic_sort_sql
       %{
         #{sort_option[:string_or_proc]}
-        #{sort_direction}
+        #{direction}
         #{sort_option[:opts][:nulls_last] ? 'NULLS LAST' : ''}
         #{tiebreaker_sort_string ? ', ' + tiebreaker_sort_string : ''}
       }.squish
