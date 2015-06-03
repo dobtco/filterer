@@ -62,9 +62,6 @@ module Filterer
       add_params_to_query
       order_results unless opts[:skip_ordering]
       paginate_results unless opts[:skip_pagination]
-
-      # Add custom meta data if we've defined the method
-      # @meta.merge!(self.custom_meta_data) if self.respond_to?(:custom_meta_data)
     end
 
     def defaults
@@ -131,7 +128,7 @@ module Filterer
 
     def per_page
       if self.class.allow_per_page_override && params[:per_page].present?
-        [params[:per_page], self.per_page_max].min
+        [params[:per_page], per_page_max].min
       else
         self.class.per_page
       end
