@@ -23,18 +23,26 @@ describe 'Filterer', :type => :feature do
   describe 'pagination' do
     before do
       300.times { Person.create(name: 'Foo bar', email: 'foo@bar.com') }
-      visit people_path
     end
 
     it 'renders the pagination correctly' do
+      visit people_path
+      expect(page).to have_selector 'div.person', count: 10
       ensure_page_links(2, 3, 4, 5)
       expect(page).to have_selector('span.current', text: '1')
     end
 
     it 'properly links between pages' do
+      visit people_path
       click_link '2'
+      expect(page).to have_selector 'div.person', count: 10
       ensure_page_links(1, 3, 4, 5, 6)
       expect(page).to have_selector('span.current', text: '2')
+    end
+
+    it 'can be configured to skip pagination entirely' do
+      visit no_pagination_people_path
+      expect(page).to have_selector 'div.person', count: 300
     end
   end
 

@@ -4,4 +4,6 @@
   </div>
 <% end %>
 
-<%= paginate(@people) %>
+<% if @people.respond_to?(:total_pages) %>
+  <%= paginate(@people) %>
+<% end %>
