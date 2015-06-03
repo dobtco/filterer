@@ -335,5 +335,11 @@ describe Filterer::Base do
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
       filterer = DefaultParamsFilterer.filter({}, skip_pagination: true)
     end
+
+    it 'provides a helper method to skip both' do
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:order_results)
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
+      filterer = DefaultParamsFilterer.filter_without_ordering_or_pagination({})
+    end
   end
 end

@@ -50,8 +50,16 @@ module Filterer
 
       # Public API
       # @return [ActiveRecord::Association]
-      def filter(*args)
-        new(*args).results
+      def filter(params = {}, opts = {})
+        new(params, opts).results
+      end
+
+      # @return [ActiveRecord::Association]
+      def filter_without_ordering_or_pagination(params = {}, opts = {})
+        new(params, opts.merge(
+          skip_ordering: true,
+          skip_pagination: true
+        )).results
       end
     end
 
