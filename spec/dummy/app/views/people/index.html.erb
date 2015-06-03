@@ -1,7 +1,15 @@
-<% @filterer.results.each do |person| %>
+<% @people.each do |person| %>
   <div class='person'>
     person <%= person.id %> <%= person.name %>
   </div>
 <% end %>
 
-<%= render_filterer_pagination(@filterer) %>
+<% if defined?(Kaminari) %>
+  <% if @people.respond_to?(:total_pages) %>
+    <%= paginate(@people) %>
+  <% end %>
+<% elsif defined?(WillPaginate) %>
+  <% if @people.respond_to?(:total_pages) %>
+    <%= will_paginate(@people) %>
+  <% end %>
+<% end %>

@@ -12,3 +12,6 @@ gemspec
 
 # To use debugger
 # gem 'debugger'
+
+gem 'kaminari', require: false
+gem 'will_paginate', require: false

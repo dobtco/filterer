@@ -1,7 +1,10 @@
 class PeopleController < ApplicationController
-
   def index
-    @filterer = PersonFilterer.new(params)
+    @people = PersonFilterer.filter(params)
   end
 
+  def no_pagination
+    @people = UnpaginatedPersonFilterer.filter(params)
+    render :index
+  end
 end

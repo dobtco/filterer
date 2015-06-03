@@ -17,7 +17,7 @@ describe 'Performance of SlowFilterer', performance: true do
       end
 
       x.report('filterer instantiation') do
-        SlowFilterer.new(params)
+        SlowFilterer.filter(params).to_a
       end
     end
   end

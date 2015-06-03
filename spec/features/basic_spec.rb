@@ -1,15 +1,37 @@
 require 'spec_helper'
 
 module BasicSpecHelper
-  def ensure_page_links(*args)
-    expect(page).to have_selector('.pagination-wrapper')
+  if defined?(Kaminari)
+    def ensure_page_links(*args)
+      expect(page).to have_selector('nav.pagination')
 
-    args.each do |x|
-      if x.is_a?(Integer)
-        expect(page).to have_link(x)
-      else
-        expect(page).to have_selector('li', text: x)
+      args.each do |x|
+        if x.is_a?(Integer)
+          expect(page).to have_link(x)
+        else
+          expect(page).to have_selector('li', text: x)
+        end
       end
+    end
+
+    def have_current_page(page)
+      have_selector 'span.current', page
+    end
+  else
+    def ensure_page_links(*args)
+      expect(page).to have_selector('div.pagination')
+
+      args.each do |x|
+        if x.is_a?(Integer)
+          expect(page).to have_link(x)
+        else
+          expect(page).to have_selector('li', text: x)
+        end
+      end
+    end
+
+    def have_current_page(page)
+      have_selector 'em.current', page
     end
   end
 end
@@ -23,18 +45,26 @@ describe 'Filterer', :type => :feature do
   describe 'pagination' do
     before do
       300.times { Person.create(name: 'Foo bar', email: 'foo@bar.com') }
-      visit people_path
     end
 
     it 'renders the pagination correctly' do
-      ensure_page_links(1, 2, 3, 4, 5, 6, 7, 8, 9, '…', 29, 30)
-      expect(page).to have_selector('li.active a', text: '1')
+      visit people_path
+      expect(page).to have_selector 'div.person', count: 10
+      ensure_page_links(2, 3, 4, 5)
+      expect(page).to have_current_page('1')
     end
 
     it 'properly links between pages' do
+      visit people_path
       click_link '2'
-      ensure_page_links(1, 2, 3, 4, 5, 6, 7, 8, 9, '…', 29, 30)
-      expect(page).to have_selector('li.active a', text: '2')
+      expect(page).to have_selector 'div.person', count: 10
+      ensure_page_links(1, 3, 4, 5, 6)
+      expect(page).to have_current_page('2')
+    end
+
+    it 'can be configured to skip pagination entirely' do
+      visit no_pagination_people_path
+      expect(page).to have_selector 'div.person', count: 300
     end
   end
 

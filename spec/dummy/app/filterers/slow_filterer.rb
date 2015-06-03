@@ -9,26 +9,26 @@ class SlowFilterer < Filterer::Base
   end
 
   def param_name(x)
-    @results.where(name: x)
+    results.where(name: x)
   end
 
   def param_a(x)
-    @results
+    results
   end
 
   def param_b(x)
-    @results
+    results
   end
 
   def param_c(x)
-    @results
+    results
   end
 
   def param_d(x)
-    @results
+    results
   end
 
   def param_e(x)
-    @results
+    results
   end
 end

@@ -5,7 +5,7 @@ class PersonFilterer < Filterer::Base
   end
 
   def param_name(x)
-    @results.where(name: x)
+    results.where(name: x)
   end
 
   sort_option 'name', default: true

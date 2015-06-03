@@ -32,33 +32,22 @@ Another answer could be in your models. But passing a bunch of query parameters 
 
 First, add `gem 'filterer'` to your `Gemfile`.
 
-
-Then generate the Filterer class:
-
-```
-rails generate filterer PersonFilterer
-```
-
-And then instead of throwing all of this logic into a controller or model, you create a `Filterer` that looks like this:
+Next, you create a `Filterer` that looks like this:
 
 ```ruby
 # app/filterers/person_filterer.rb
 
 class PersonFilterer < Filterer::Base
-  def starting_query
-    Person.where('deleted_at IS NULL')
-  end
-
   def param_name(x)
-    @results.where(name: x)
+    results.where(name: x)
   end
 
   def param_email(x)
-    @results.where('LOWER(email) = ?', x)
+    results.where('LOWER(email) = ?', x)
   end
 
   def param_admin(x)
-    @results.where(admin: true)
+    results.where(admin: true)
   end
 
   # Optional default params
@@ -66,6 +55,11 @@ class PersonFilterer < Filterer::Base
     {
       direction: 'desc'
     }
+  end
+
+  # Optional default filters
+  def apply_default_filters
+    results.where('deleted_at IS NULL')
   end
 end
 ```
@@ -75,54 +69,34 @@ And in your controller:
 ```ruby
 class PeopleController < ApplicationController
   def index
-    @filterer = PersonFilterer.new(params)
+    @people = Person.filter(params)
   end
 end
-```
-
-And in your views:
-
-```erb
-<% @filterer.results.each do |person| %>
-  ...
-<% end %>
 ```
 
 Now, when a user visits `/people`, they'll see Adam, Barack, and Joe, all three people. But when they visit `/people?name=Adam%20Becker`, they'll see only Adam. Or when they visit `/people?admin=t`, they'll see only Adam and Joe.
 
-#### Pagination
+#### Specifying the Filterer class to use
 
-Filterer includes its own pagination logic (described here). To use filterer with other gems, see the [alternative solutions section](#alternative-pagination-solutions). (This will likely be the supported behavior in the next major release.)
+Filterer includes a lightweight ActiveRecord adapter that allows us to call `filter` on any `ActiveRecord::Relation` like in the example above. By default, it will look for a class named `[ModelName]Filterer`. If you wish to override this, you have a couple of options:
 
-In your controller:
-```ruby
-helper Filterer::PaginationHelper
+You can pass a `:filterer_class` option to the call to `filter`:
+
+```rb
+Person.filter(params, filterer_class: 'AdvancedPersonFilterer')
 ```
 
-In your view:
-```erb
-<%= render_filterer_pagination(@filterer) %>
+Or you can bypass the ActiveRecord adapter altogether:
+
+```rb
+AdvancedPersonFilterer.filter(params, starting_query: Person.all)
 ```
 
-#### Passing options to the Filterer
+### Pagination
 
-```ruby
-class PersonFilterer < Filterer::Base
-  def starting_query
-    @opts[:organization].people.where('deleted_at IS NULL')
-  end
-end
-```
+Filterer relies on either [Kaminari](https://github.com/amatsuda/kaminari) or [will_paginate](https://github.com/mislav/will_paginate) for pagination. *You must install one of them if you want to paginate your records.*
 
-or
-
-```ruby
-class PersonFilterer < Filterer::Base
-end
-
-# In your controller...
-PersonFilterer.new(params, starting_query: @organization.people)
-```
+If you have either of the above gems installed, Filterer will automatically paginate your records, fetching the correct page for the `?page=X` URL parameter. By default, filterer will display 20 records per page.
 
 #### Overriding per_page
 
@@ -137,7 +111,7 @@ end
 ```ruby
 class PersonFilterer < Filterer::Base
   self.per_page = 20
-  self.per_page_allow_override = true
+  self.allow_per_page_override = true
 end
 ```
 
@@ -145,13 +119,26 @@ Now you can append `?per_page=50` to the URL.
 
 > Note: To prevent abuse, this value will still max-out at `1000` records per page.
 
-#### Sorting the results
+#### Disabling pagination
+
+```rb
+class NoPaginationFilterer < PersonFilterer
+  self.per_page = nil
+end
+```
+
+or
+
+```rb
+Person.filter(params, skip_pagination: true)
+```
+
+### Sorting the results
 
 Filterer provides a slightly different DSL for sorting your results. Here's a quick overview of the different ways to use it:
 
 ```ruby
 class PersonFilterer < Filterer::Base
-
   # '?sort=name' will order by LOWER(people.name). If there is no sort parameter,
   # we'll default to this anyway.
   sort_option 'name', 'LOWER(people.name)', default: true
@@ -165,46 +152,40 @@ class PersonFilterer < Filterer::Base
 
   # '?sort=data1', '?sort=data2', etc. will call the following proc, passing the
   # query and match data
-  sort_option Regexp.new('data([0-9]+)'), -> (query, match_data, filterer) {
-    query.order('data -> ?', match_data[1])
+  sort_option Regexp.new('data([0-9]+)'), -> (query, matches, filterer) {
+    query.order "(ratings -> '#{matches[1]}') #{filterer.direction}"
   }
-
 end
 ```
 
-#### Chaining
+Since paginating records without an explicit `ORDER BY` clause is a no-no, Filterer orders by `[table_name].id asc` if no sort options are provided.
 
-An option is available to chain additional calls onto the filterer query.
+#### Disabling the ordering of results
+
+For certain queries, you might want to bypass the ordering of results:
+
+```rb
+Person.filter(params, skip_ordering: true)
+```
+
+### Passing arbitrary data to the Filterer
 
 ```ruby
-class PeopleController < ApplicationController
-  def index
-    @filterer = PersonFilterer.chain(params).my_custom_method
+class OrganizationFilterer < Filterer::Base
+  def starting_query
+    if opts[:is_admin]
+      Organization.all.with_deleted_records
+    else
+      Organization.all
+    end
   end
 end
+
+OrganizationFilterer.filter(params, is_admin: current_user.admin?)
 ```
-
-In the view, we can then skip the call to `results` (i.e. `@filterer.each` vs `@filterer.results.each`).
-
-(By default, chaining will _not_ apply ordering clauses. To obey ordering params, pass the `:include_ordering` option to `chain`.)
-
-#### Alternative Pagination Solutions
-
-Filterer supports basic pagination. This can be replaced by alternative pagination tools such as [Kaminari](https://github.com/amatsuda/kaminari) or [will_paginate](https://github.com/mislav/will_paginate).
-
-Using the `chain` approach, we can control pagination ourselves:
-
-```ruby
-class PeopleController < ApplicationController
-  def index
-    @filterer = PersonFilterer.chain(params).page(params[:page]).per(10)
-  end
-end
-```
-
-The views should then use the helpers appropriate for the pagination gem used.
 
 #### License
+
 [MIT](http://dobt.mit-license.org)
 
 [status]: https://circleci-badges.herokuapp.com/dobtco/filterer/4227dad9a04a91b070e9c25174f4035a2da6a828
