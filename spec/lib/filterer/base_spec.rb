@@ -145,11 +145,6 @@ describe Filterer::Base do
     SmokeTestFilterer.filter(foo: 'bar')
   end
 
-  it 'does not pass the :page parameter' do
-    expect_any_instance_of(SmokeTestFilterer).not_to receive(:param_page)
-    SmokeTestFilterer.filter(page: 'bar')
-  end
-
   it 'does not pass blank parameters' do
     expect_any_instance_of(SmokeTestFilterer).not_to receive(:param_foo)
     SmokeTestFilterer.new(foo: '')

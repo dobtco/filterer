@@ -1,7 +1,5 @@
 module Filterer
   class Base
-    IGNORED_PARAMS = %w(page)
-
     attr_accessor :results,
                   :meta,
                   :direction,
@@ -61,7 +59,7 @@ module Filterer
     def initialize(params = {}, opts = {})
       self.params = defaults.merge(params).with_indifferent_access
       self.opts = opts
-      self.results = opts.delete(:starting_query) || starting_query
+      self.results = opts[:starting_query] || starting_query
       add_params_to_query
       order_results unless opts[:skip_ordering]
       paginate_results unless opts[:skip_pagination]
@@ -113,8 +111,7 @@ module Filterer
     end
 
     def present_params
-      params.select do |k, v|
-        !k.to_s.in?(IGNORED_PARAMS) &&
+      params.select do |_k, v|
         v.present?
       end
     end

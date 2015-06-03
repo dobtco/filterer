@@ -5,7 +5,7 @@ module Filterer
     included do
       def self.filter(params = {}, opts = {})
         filterer_class(opts[:filterer_class]).
-          filter(params, opts.merge(starting_query: all))
+          filter(params, { starting_query: all }.merge(opts))
       end
 
       def self.filterer_class(override)
