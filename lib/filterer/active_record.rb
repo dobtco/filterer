@@ -8,9 +8,9 @@ module Filterer
           filter(params, { starting_query: all }.merge(opts))
       end
 
-      def self.filter_without_ordering_or_pagination(params = {}, opts = {})
+      def self.chain(params = {}, opts = {})
         filterer_class(opts[:filterer_class]).
-          filter_without_ordering_or_pagination(params, { starting_query: all }.merge(opts))
+          chain(params, { starting_query: all }.merge(opts))
       end
 
       def self.filterer_class(override)

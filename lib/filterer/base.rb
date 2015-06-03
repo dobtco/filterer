@@ -55,7 +55,7 @@ module Filterer
       end
 
       # @return [ActiveRecord::Association]
-      def filter_without_ordering_or_pagination(params = {}, opts = {})
+      def chain(params = {}, opts = {})
         new(params, opts.merge(
           skip_ordering: true,
           skip_pagination: true
