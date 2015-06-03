@@ -59,6 +59,7 @@ module Filterer
       self.params = defaults.merge(params).with_indifferent_access
       self.opts = opts
       self.results = opts[:starting_query] || starting_query
+      self.results = apply_default_filters || results
       add_params_to_query
       order_results unless opts[:skip_ordering]
       paginate_results unless opts[:skip_pagination]
@@ -98,6 +99,10 @@ module Filterer
 
     def paginate_results_with_will_paginate
       self.results = results.paginate(page: current_page, per_page: per_page)
+    end
+
+    def apply_default_filters
+      results
     end
 
     def add_params_to_query

@@ -41,6 +41,18 @@ class DefaultParamsFilterer < Filterer::Base
   end
 end
 
+class DefaultFiltersFilterer < Filterer::Base
+  def starting_query
+    FakeQuery.new
+  end
+
+  def apply_default_filters
+    if opts[:foo]
+      results.where(foo: 'bar')
+    end
+  end
+end
+
 class UnscopedFilterer < Filterer::Base
   def starting_query
     Person.select('name, email')
@@ -138,6 +150,16 @@ describe Filterer::Base do
   it 'adds default params' do
     filterer = DefaultParamsFilterer.new({})
     expect(filterer.params).to eq('foo' => 'bar')
+  end
+
+  it 'applies default filters' do
+    expect_any_instance_of(FakeQuery).to receive(:where).with(foo: 'bar').and_return(FakeQuery.new)
+    filterer = DefaultFiltersFilterer.filter({}, foo: 'bar')
+  end
+
+  it 'allows returning nil from  default filters' do
+    expect_any_instance_of(FakeQuery).to receive(:where).with(bar: 'baz').and_return(FakeQuery.new)
+    filterer = DefaultFiltersFilterer.filter({}).where(bar: 'baz')
   end
 
   it 'passes parameters to the correct methods' do

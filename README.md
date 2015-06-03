@@ -56,6 +56,11 @@ class PersonFilterer < Filterer::Base
       direction: 'desc'
     }
   end
+
+  # Optional default filters
+  def apply_default_filters
+    results.where('deleted_at IS NULL')
+  end
 end
 ```
 
