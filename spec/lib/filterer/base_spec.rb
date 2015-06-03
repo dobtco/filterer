@@ -295,7 +295,12 @@ describe Filterer::Base do
   describe 'unscoping' do
     it 'unscopes select' do
       results = UnscopedFilterer.filter
-      expect(results.total_count).to eq(0)
+
+      if defined?(Kaminari)
+        expect(results.total_count).to eq(0)
+      else
+        expect(results.total_entries).to eq(0)
+      end
     end
   end
 

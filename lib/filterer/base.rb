@@ -81,9 +81,25 @@ module Filterer
     private
 
     def paginate_results
-      if per_page
-        self.results = results.page(current_page).per(per_page)
+      if per_page && paginator
+        send("paginate_results_with_#{paginator}")
       end
+    end
+
+    def paginator
+      if defined?(Kaminari)
+        :kaminari
+      elsif defined?(WillPaginate)
+        :will_paginate
+      end
+    end
+
+    def paginate_results_with_kaminari
+      self.results = results.page(current_page).per(per_page)
+    end
+
+    def paginate_results_with_will_paginate
+      self.results = results.paginate(page: current_page, per_page: per_page)
     end
 
     def add_params_to_query

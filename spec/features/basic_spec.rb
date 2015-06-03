@@ -1,15 +1,37 @@
 require 'spec_helper'
 
 module BasicSpecHelper
-  def ensure_page_links(*args)
-    expect(page).to have_selector('nav.pagination')
+  if defined?(Kaminari)
+    def ensure_page_links(*args)
+      expect(page).to have_selector('nav.pagination')
 
-    args.each do |x|
-      if x.is_a?(Integer)
-        expect(page).to have_link(x)
-      else
-        expect(page).to have_selector('li', text: x)
+      args.each do |x|
+        if x.is_a?(Integer)
+          expect(page).to have_link(x)
+        else
+          expect(page).to have_selector('li', text: x)
+        end
       end
+    end
+
+    def have_current_page(page)
+      have_selector 'span.current', page
+    end
+  else
+    def ensure_page_links(*args)
+      expect(page).to have_selector('div.pagination')
+
+      args.each do |x|
+        if x.is_a?(Integer)
+          expect(page).to have_link(x)
+        else
+          expect(page).to have_selector('li', text: x)
+        end
+      end
+    end
+
+    def have_current_page(page)
+      have_selector 'em.current', page
     end
   end
 end
@@ -29,7 +51,7 @@ describe 'Filterer', :type => :feature do
       visit people_path
       expect(page).to have_selector 'div.person', count: 10
       ensure_page_links(2, 3, 4, 5)
-      expect(page).to have_selector('span.current', text: '1')
+      expect(page).to have_current_page('1')
     end
 
     it 'properly links between pages' do
@@ -37,7 +59,7 @@ describe 'Filterer', :type => :feature do
       click_link '2'
       expect(page).to have_selector 'div.person', count: 10
       ensure_page_links(1, 3, 4, 5, 6)
-      expect(page).to have_selector('span.current', text: '2')
+      expect(page).to have_current_page('2')
     end
 
     it 'can be configured to skip pagination entirely' do

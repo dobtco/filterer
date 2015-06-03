@@ -1,4 +1,3 @@
-require 'kaminari'
 require 'filterer/engine'
 require 'filterer/base'
 

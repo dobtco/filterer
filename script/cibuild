@@ -1,3 +1,4 @@
 #!/bin/sh
 
 bundle exec rspec
+WILL_PAGINATE=true bundle exec rspec
