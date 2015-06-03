@@ -80,7 +80,7 @@ module Filterer
 
     def sort
       @sort ||= begin
-        if params[:sort] && (opt = find_sort_option_from_param(params[:sort]))
+        if params[:sort] && find_sort_option_from_param(params[:sort])
           params[:sort]
         else
           default_sort_option.try(:[], :key)
