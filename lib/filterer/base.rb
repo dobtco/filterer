@@ -2,7 +2,6 @@ module Filterer
   class Base
     attr_accessor :results,
                   :meta,
-                  :direction,
                   :sort,
                   :params,
                   :opts
@@ -21,14 +20,14 @@ module Filterer
 
     class << self
       # Macro for adding sort options
-      def sort_option(key, query_string_or_proc = nil, opts = {})
-        if query_string_or_proc.is_a?(Hash)
-          opts, query_string_or_proc = query_string_or_proc.clone, nil
+      def sort_option(key, string_or_proc = nil, opts = {})
+        if string_or_proc.is_a?(Hash)
+          opts, string_or_proc = string_or_proc.clone, nil
         end
 
-        if !query_string_or_proc
+        if !string_or_proc
           if key.is_a?(String)
-            query_string_or_proc = key
+            string_or_proc = key
           else
             raise 'Please provide a query string or a proc.'
           end
@@ -38,13 +37,13 @@ module Filterer
           raise "Default sort option can't have a Regexp key."
         end
 
-        if query_string_or_proc.is_a?(Proc) && opts[:tiebreaker]
+        if string_or_proc.is_a?(Proc) && opts[:tiebreaker]
           raise "Tiebreaker can't be a proc."
         end
 
         self.sort_options += [{
           key: key,
-          query_string_or_proc: query_string_or_proc,
+          string_or_proc: string_or_proc,
           opts: opts
         }]
       end
@@ -74,6 +73,10 @@ module Filterer
 
     def starting_query
       raise 'You must override this method!'
+    end
+
+    def sort_direction
+      params[:direction].try(:downcase) == 'desc' ? 'desc' : 'asc'
     end
 
     private
@@ -117,33 +120,13 @@ module Filterer
     end
 
     def order_results
-      self.direction = params[:direction].try(:downcase) == 'desc' ? 'desc' : 'asc'
-      self.sort = if (params[:sort] && get_sort_option(params[:sort]))
-                    params[:sort]
-                  else
-                    default_sort_param
-                  end
-
-      if !get_sort_option(sort)
-        self.results = results.order default_sort_sql
-      elsif get_sort_option(sort)[:query_string_or_proc].is_a?(String)
-        self.results = results.order basic_sort_sql
-      elsif get_sort_option(sort)[:query_string_or_proc].is_a?(Proc)
-        apply_sort_proc
-      end
-    end
-
-    def default_sort_sql
-      "#{results.model.table_name}.id asc"
-    end
-
-    def basic_sort_sql
-      %{
-        #{get_sort_option(sort)[:query_string_or_proc]}
-        #{direction}
-        #{get_sort_option(sort)[:opts][:nulls_last] ? 'NULLS LAST' : ''}
-        #{tiebreaker_sort_string ? ',' + tiebreaker_sort_string : ''}
-      }.squish
+      self.results = if !sort_option
+                       results.order(default_sort_sql)
+                     elsif sort_option[:string_or_proc].is_a?(String)
+                       results.order(basic_sort_sql)
+                     elsif sort_option[:string_or_proc].is_a?(Proc)
+                       apply_sort_proc
+                     end
     end
 
     def per_page
@@ -158,13 +141,17 @@ module Filterer
       [params[:page].to_i, 1].max
     end
 
-    def apply_sort_proc
-      sort_key = get_sort_option(sort)[:key]
-      matches = sort_key.is_a?(Regexp) && sort.match(sort_key)
-      self.results = get_sort_option(sort)[:query_string_or_proc].call(results, matches, self)
+    def sort_option
+      @sort_option ||= begin
+        if params[:sort] && (opt = find_sort_option_from_param(params[:sort]))
+          opt
+        else
+          default_sort_option
+        end
+      end
     end
 
-    def get_sort_option(x)
+    def find_sort_option_from_param(x)
       self.class.sort_options.detect do |sort_option|
         if sort_option[:key].is_a?(Regexp)
           x.match(sort_option[:key])
@@ -174,16 +161,35 @@ module Filterer
       end
     end
 
-    def default_sort_param
+    def default_sort_sql
+      "#{results.model.table_name}.id asc"
+    end
+
+    def basic_sort_sql
+      %{
+        #{sort_option[:string_or_proc]}
+        #{sort_direction}
+        #{sort_option[:opts][:nulls_last] ? 'NULLS LAST' : ''}
+        #{tiebreaker_sort_string ? ', ' + tiebreaker_sort_string : ''}
+      }.squish
+    end
+
+    def apply_sort_proc
+      sort_key = sort_option[:key]
+      matches = sort_key.is_a?(Regexp) && params[:sort].match(sort_key)
+      sort_option[:string_or_proc].call(results, matches, self)
+    end
+
+    def default_sort_option
       self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:default]
-      end.try(:[], :key)
+      end
     end
 
     def tiebreaker_sort_string
       self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:tiebreaker]
-      end.try(:[], :query_string_or_proc)
+      end.try(:[], :string_or_proc)
     end
   end
 end
