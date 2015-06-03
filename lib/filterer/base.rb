@@ -63,6 +63,7 @@ module Filterer
       add_params_to_query
       order_results unless opts[:skip_ordering]
       paginate_results unless opts[:skip_pagination]
+      extend_active_record_relation
     end
 
     def defaults
@@ -192,6 +193,16 @@ module Filterer
       self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:tiebreaker]
       end.try(:[], :string_or_proc)
+    end
+
+    def extend_active_record_relation
+      results.instance_variable_set(:@filterer, self)
+
+      results.extending! do
+        def filterer
+          @filterer
+        end
+      end
     end
   end
 end

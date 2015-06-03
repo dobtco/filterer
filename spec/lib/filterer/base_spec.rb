@@ -305,6 +305,11 @@ describe Filterer::Base do
     end
   end
 
+  it 'allows accessing the filterer object' do
+    results = UnscopedFilterer.filter
+    expect(results.filterer).to be_a(Filterer::Base)
+  end
+
   describe 'unscoping' do
     it 'unscopes select' do
       results = UnscopedFilterer.filter
