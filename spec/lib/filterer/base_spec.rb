@@ -91,7 +91,7 @@ class SortingFiltererC < Filterer::Base
   end
 
   sort_option 'id', default: true
-  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.direction) }
+  sort_option Regexp.new('foo([0-9]+)'), -> (matches) { matches[1] }
 end
 
 class SortingFiltererD < Filterer::Base
@@ -108,8 +108,12 @@ class SortingFiltererE < Filterer::Base
   end
 
   sort_option 'id', default: true
-  sort_option Regexp.new('foo([0-9]+)'), -> (results, matches, filterer) { results.order(matches[1] + ' ' + filterer.direction) }
-  sort_option Regexp.new('zoo([0-9]+)'), -> (results, matches, filterer) { results.order('zoo') }
+  sort_option Regexp.new('foo([0-9]+)'), -> (matches) { matches[1] }
+  sort_option Regexp.new('zoo([0-9]+)'), -> (matches) {
+    if matches[1].to_i > 10
+      'zoo'
+    end
+  }
 end
 
 class PaginationFilterer < Filterer::Base
@@ -231,8 +235,13 @@ describe Filterer::Base do
     end
 
     it 'can distinguish between two regexps' do
-      expect_any_instance_of(FakeQuery).to receive(:order).with('zoo').and_return(FakeQuery.new)
+      expect_any_instance_of(FakeQuery).to receive(:order).with('zoo asc').and_return(FakeQuery.new)
       filterer = SortingFiltererE.new(sort: 'zoo111')
+    end
+
+    it 'applies the default sort if the proc returns nil' do
+      expect_any_instance_of(FakeQuery).to receive(:order).with('id asc').and_return(FakeQuery.new)
+      filterer = SortingFiltererE.new(sort: 'zoo1')
     end
 
     it 'can distinguish between two regexps part 2' do
@@ -271,7 +280,7 @@ describe Filterer::Base do
             FakeQuery.new
           end
 
-          sort_option 'whoop', -> (q, matches) { q }, tiebreaker: true
+          sort_option 'whoop', -> (matches) { nil }, tiebreaker: true
         end
       }.to raise_error
     end
