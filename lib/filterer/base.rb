@@ -86,12 +86,13 @@ module Filterer
       params[:direction].try(:downcase) == 'desc' ? 'desc' : 'asc'
     end
 
+    # @return [String] the key for the applied sort option.
     def sort
       @sort ||= begin
         if params[:sort] && find_sort_option_from_param(params[:sort])
           params[:sort]
         else
-          default_sort_option.try(:[], :key)
+          default_sort_option[:key]
         end
       end
     end
@@ -142,11 +143,19 @@ module Filterer
 
     def order_results
       self.results = if !sort_option
-                       results.order(default_sort_sql)
+                       order_by_sort_option(default_sort_option)
                      elsif sort_option[:string_or_proc].is_a?(String)
-                       results.order(basic_sort_sql)
+                       order_by_sort_option(sort_option)
                      elsif sort_option[:string_or_proc].is_a?(Proc)
-                       apply_sort_proc
+                       sort_string = sort_proc_to_string(sort_option)
+
+                       if sort_string
+                         order_by_sort_option(sort_option.merge(
+                           string_or_proc: sort_string
+                         ))
+                       else
+                         order_by_sort_option(filterer_default_sort_option)
+                       end
                      end
     end
 
@@ -166,6 +175,8 @@ module Filterer
       @sort_option ||= find_sort_option_from_param(sort)
     end
 
+    # @param x [String]
+    # @return [Hash] sort_option
     def find_sort_option_from_param(x)
       self.class.sort_options.detect do |sort_option|
         if sort_option[:key].is_a?(Regexp)
@@ -176,29 +187,33 @@ module Filterer
       end
     end
 
-    def default_sort_sql
-      "#{results.model.table_name}.id asc"
-    end
-
-    def basic_sort_sql
-      %{
-        #{sort_option[:string_or_proc]}
+    def order_by_sort_option(opt)
+      results.order %{
+        #{opt[:string_or_proc]}
         #{direction}
-        #{sort_option[:opts][:nulls_last] ? 'NULLS LAST' : ''}
+        #{opt[:opts][:nulls_last] ? 'NULLS LAST' : ''}
         #{tiebreaker_sort_string ? ', ' + tiebreaker_sort_string : ''}
       }.squish
     end
 
-    def apply_sort_proc
-      sort_key = sort_option[:key]
+    def sort_proc_to_string(opt)
+      sort_key = opt[:key]
       matches = sort_key.is_a?(Regexp) && params[:sort].match(sort_key)
-      sort_option[:string_or_proc].call(results, matches, self)
+      opt[:string_or_proc].call(matches)
     end
 
     def default_sort_option
       self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:default]
-      end
+      end || filterer_default_sort_option
+    end
+
+    def filterer_default_sort_option
+      {
+        key: 'default',
+        string_or_proc: "#{results.model.table_name}.id",
+        opts: {}
+      }
     end
 
     def tiebreaker_sort_string
