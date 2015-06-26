@@ -107,12 +107,19 @@ class SortingFiltererE < Filterer::Base
     FakeQuery.new
   end
 
+  def something_important
+    'yeehaw'
+  end
+
   sort_option 'id', default: true
   sort_option Regexp.new('foo([0-9]+)'), -> (matches) { matches[1] }
   sort_option Regexp.new('zoo([0-9]+)'), -> (matches) {
     if matches[1].to_i > 10
       'zoo'
     end
+  }
+  sort_option 'context', -> (_matches) {
+    something_important
   }
 end
 
@@ -246,6 +253,11 @@ describe Filterer::Base do
     it 'still applies the tiebreaker' do
       expect_any_instance_of(FakeQuery).to receive(:order).with('zoo asc , tiebreak').and_return(FakeQuery.new)
       filterer = SortingFiltererF.new(sort: 'zoo111')
+    end
+
+    it 'calls with context' do
+      expect_any_instance_of(FakeQuery).to receive(:order).with('yeehaw asc , tiebreak').and_return(FakeQuery.new)
+      filterer = SortingFiltererF.new(sort: 'context')
     end
 
     it 'applies the default sort if the proc returns nil' do

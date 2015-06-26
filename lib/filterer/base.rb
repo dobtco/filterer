@@ -199,7 +199,7 @@ module Filterer
     def sort_proc_to_string(opt)
       sort_key = opt[:key]
       matches = sort_key.is_a?(Regexp) && params[:sort].match(sort_key)
-      opt[:string_or_proc].call(matches)
+      instance_exec matches, &opt[:string_or_proc]
     end
 
     def default_sort_option
