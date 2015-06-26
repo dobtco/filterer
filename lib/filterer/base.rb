@@ -86,12 +86,13 @@ module Filterer
       params[:direction].try(:downcase) == 'desc' ? 'desc' : 'asc'
     end
 
+    # @return [String] the key for the applied sort option.
     def sort
       @sort ||= begin
         if params[:sort] && find_sort_option_from_param(params[:sort])
           params[:sort]
         else
-          default_sort_option.try(:[], :key)
+          default_sort_option[:key]
         end
       end
     end
@@ -142,7 +143,7 @@ module Filterer
 
     def order_results
       self.results = if !sort_option
-                       order_by_default_sort_option
+                       order_by_sort_option(default_sort_option)
                      elsif sort_option[:string_or_proc].is_a?(String)
                        order_by_sort_option(sort_option)
                      elsif sort_option[:string_or_proc].is_a?(Proc)
@@ -153,7 +154,7 @@ module Filterer
                            string_or_proc: sort_string
                          ))
                        else
-                         order_by_default_sort_option
+                         order_by_sort_option(filterer_default_sort_option)
                        end
                      end
     end
@@ -174,6 +175,8 @@ module Filterer
       @sort_option ||= find_sort_option_from_param(sort)
     end
 
+    # @param x [String]
+    # @return [Hash] sort_option
     def find_sort_option_from_param(x)
       self.class.sort_options.detect do |sort_option|
         if sort_option[:key].is_a?(Regexp)
@@ -182,10 +185,6 @@ module Filterer
           x == sort_option[:key]
         end
       end
-    end
-
-    def default_sort_sql
-      "#{results.model.table_name}.id asc"
     end
 
     def order_by_sort_option(opt)
@@ -197,14 +196,6 @@ module Filterer
       }.squish
     end
 
-    def order_by_default_sort_option
-      if default_sort_option
-        order_by_sort_option(default_sort_option)
-      else
-        results.order(default_sort_sql)
-      end
-    end
-
     def sort_proc_to_string(opt)
       sort_key = opt[:key]
       matches = sort_key.is_a?(Regexp) && params[:sort].match(sort_key)
@@ -214,7 +205,15 @@ module Filterer
     def default_sort_option
       self.class.sort_options.detect do |sort_option|
         sort_option[:opts][:default]
-      end
+      end || filterer_default_sort_option
+    end
+
+    def filterer_default_sort_option
+      {
+        key: 'default',
+        string_or_proc: "#{results.model.table_name}.id",
+        opts: {}
+      }
     end
 
     def tiebreaker_sort_string

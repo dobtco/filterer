@@ -116,6 +116,10 @@ class SortingFiltererE < Filterer::Base
   }
 end
 
+class SortingFiltererF < SortingFiltererE
+  sort_option 'tiebreak', tiebreaker: true
+end
+
 class PaginationFilterer < Filterer::Base
   def starting_query
     FakeQuery.new
@@ -178,7 +182,7 @@ describe Filterer::Base do
 
   describe 'sorting' do
     it 'orders by ID by default' do
-      expect_any_instance_of(FakeQuery).to(
+      allow_any_instance_of(FakeQuery).to(
         receive_message_chain(:model, :table_name).
           and_return('asdf')
       )
@@ -188,7 +192,7 @@ describe Filterer::Base do
         and_return(FakeQuery.new)
 
       filterer = SmokeTestFilterer.new
-      expect(filterer.sort).to be_nil
+      expect(filterer.sort).to eq 'default'
     end
 
     it 'applies a default sort' do
@@ -239,8 +243,17 @@ describe Filterer::Base do
       filterer = SortingFiltererE.new(sort: 'zoo111')
     end
 
+    it 'still applies the tiebreaker' do
+      expect_any_instance_of(FakeQuery).to receive(:order).with('zoo asc , tiebreak').and_return(FakeQuery.new)
+      filterer = SortingFiltererF.new(sort: 'zoo111')
+    end
+
     it 'applies the default sort if the proc returns nil' do
-      expect_any_instance_of(FakeQuery).to receive(:order).with('id asc').and_return(FakeQuery.new)
+      allow_any_instance_of(FakeQuery).to(
+        receive_message_chain(:model, :table_name).
+          and_return('asdf')
+      )
+      expect_any_instance_of(FakeQuery).to receive(:order).with('asdf.id asc').and_return(FakeQuery.new)
       filterer = SortingFiltererE.new(sort: 'zoo1')
     end
 
