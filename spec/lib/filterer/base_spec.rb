@@ -318,7 +318,7 @@ describe Filterer::Base do
       it 'can be overriden' do
         @filterer = PaginationFiltererWithOverride.new
         expect(@filterer.meta[:per_page]).to eq(20)
-        @filterer = PaginationFiltererWithOverride.new(per_page: 15)
+        @filterer = PaginationFiltererWithOverride.new(per_page: '15')
         expect(@filterer.meta[:per_page]).to eq(15)
       end
 
