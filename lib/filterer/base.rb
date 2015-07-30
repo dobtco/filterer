@@ -161,7 +161,7 @@ module Filterer
 
     def per_page
       if self.class.allow_per_page_override && params[:per_page].present?
-        [params[:per_page], per_page_max].min
+        [params[:per_page].to_i, per_page_max].min
       else
         self.class.per_page
       end
