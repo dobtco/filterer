@@ -71,8 +71,8 @@ module Filterer
     end
 
     def initialize(params = {}, opts = {})
-      self.params = defaults.merge(params).with_indifferent_access
       self.opts = opts
+      self.params = defaults.merge(params).with_indifferent_access
       self.results = opts[:starting_query] || starting_query
       self.results = apply_default_filters || results
       add_params_to_query
