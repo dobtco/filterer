@@ -297,7 +297,7 @@ describe Filterer::Base do
 
           sort_option Regexp.new('hi')
         end
-      }.to raise_error
+      }.to raise_error(/provide a query string or a proc/)
     end
 
     it 'throws an error when key is a regexp and it is the default key' do
@@ -309,7 +309,7 @@ describe Filterer::Base do
 
           sort_option Regexp.new('hi'), 'afdsfasdf', default: true
         end
-      }.to raise_error
+      }.to raise_error(/Default sort option can't have a Regexp key/)
     end
 
     it 'throws an error when option is a tiebreaker and it has a proc' do
@@ -321,7 +321,7 @@ describe Filterer::Base do
 
           sort_option 'whoop', -> (matches) { nil }, tiebreaker: true
         end
-      }.to raise_error
+      }.to raise_error(/Tiebreaker can't be a proc/)
     end
   end
 

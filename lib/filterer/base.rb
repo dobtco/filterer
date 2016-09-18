@@ -72,7 +72,8 @@ module Filterer
 
     def initialize(params = {}, opts = {})
       self.opts = opts
-      self.params = defaults.merge(params).with_indifferent_access
+      self.params = defaults.merge(parse_strong_parameters(params)).
+                      with_indifferent_access
       self.results = opts[:starting_query] || starting_query
       self.results = apply_default_filters || results
       add_params_to_query
@@ -239,6 +240,10 @@ module Filterer
           @filterer
         end
       end
+    end
+
+    def parse_strong_parameters(params)
+      params.try(:to_unsafe_h) || params
     end
   end
 end
