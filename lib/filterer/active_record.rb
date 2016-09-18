@@ -2,18 +2,23 @@ module Filterer
   module ActiveRecord
     extend ActiveSupport::Concern
 
-    included do
-      def self.filter(params = {}, opts = {})
-        filterer_class(opts[:filterer_class]).
-          filter(params, { starting_query: all }.merge(opts))
+    class_methods do
+      def filter(params = {}, opts = {})
+        delegate_to_filterer(:filter, params, opts)
       end
 
-      def self.chain(params = {}, opts = {})
-        filterer_class(opts[:filterer_class]).
-          chain(params, { starting_query: all }.merge(opts))
+      def chain(params = {}, opts = {})
+        delegate_to_filterer(:chain, params, opts)
       end
 
-      def self.filterer_class(override)
+      private
+
+      def delegate_to_filterer(method, params, opts)
+        filterer_class(opts[:filterer_class]).
+          send(method, params, { starting_query: all }.merge(opts))
+      end
+
+      def filterer_class(override)
         if override
           override.constantize
         else

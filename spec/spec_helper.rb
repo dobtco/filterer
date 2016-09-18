@@ -1,10 +1,10 @@
 require 'coveralls'
 Coveralls.wear!
 
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
   Coveralls::SimpleCov::Formatter,
   SimpleCov::Formatter::HTMLFormatter
-]
+])
 
 ENV["RAILS_ENV"] = "test"
 

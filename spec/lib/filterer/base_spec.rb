@@ -53,6 +53,16 @@ class DefaultFiltersFilterer < Filterer::Base
   end
 end
 
+class ReturnNilFilterer < Filterer::Base
+  def starting_query
+    Person.all
+  end
+
+  def param_foo(x)
+    # nil
+  end
+end
+
 class UnscopedFilterer < Filterer::Base
   def starting_query
     Person.select('name, email')
@@ -172,7 +182,7 @@ describe Filterer::Base do
     filterer = DefaultFiltersFilterer.filter({}, foo: 'bar')
   end
 
-  it 'allows returning nil from  default filters' do
+  it 'allows returning nil from default filters' do
     expect_any_instance_of(FakeQuery).to receive(:where).with(bar: 'baz').and_return(FakeQuery.new)
     filterer = DefaultFiltersFilterer.filter({}).where(bar: 'baz')
   end
@@ -185,6 +195,10 @@ describe Filterer::Base do
   it 'does not pass blank parameters' do
     expect_any_instance_of(SmokeTestFilterer).not_to receive(:param_foo)
     SmokeTestFilterer.new(foo: '')
+  end
+
+  it 'allows returning nil from a param_* method' do
+    expect(ReturnNilFilterer.filter(foo: 'bar')).to eq([])
   end
 
   describe 'sorting' do
@@ -283,7 +297,7 @@ describe Filterer::Base do
 
           sort_option Regexp.new('hi')
         end
-      }.to raise_error
+      }.to raise_error(/provide a query string or a proc/)
     end
 
     it 'throws an error when key is a regexp and it is the default key' do
@@ -295,7 +309,7 @@ describe Filterer::Base do
 
           sort_option Regexp.new('hi'), 'afdsfasdf', default: true
         end
-      }.to raise_error
+      }.to raise_error(/Default sort option can't have a Regexp key/)
     end
 
     it 'throws an error when option is a tiebreaker and it has a proc' do
@@ -307,7 +321,7 @@ describe Filterer::Base do
 
           sort_option 'whoop', -> (matches) { nil }, tiebreaker: true
         end
-      }.to raise_error
+      }.to raise_error(/Tiebreaker can't be a proc/)
     end
   end
 
@@ -361,7 +375,7 @@ describe Filterer::Base do
 
   describe 'options' do
     it 'skips ordering' do
-      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:order_results)
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:ordered_results)
       filterer = DefaultParamsFilterer.filter({}, skip_ordering: true)
     end
 
@@ -371,13 +385,14 @@ describe Filterer::Base do
     end
 
     it 'provides a helper method to skip both' do
-      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:order_results)
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:ordered_results)
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
       filterer = DefaultParamsFilterer.chain({})
     end
 
     it 'provides a helper method to skip pagination' do
-      expect_any_instance_of(DefaultParamsFilterer).to receive(:order_results)
+      expect_any_instance_of(DefaultParamsFilterer).to receive(:ordered_results).
+        and_call_original
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
       filterer = DefaultParamsFilterer.filter_without_pagination({})
     end

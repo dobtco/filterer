@@ -15,7 +15,7 @@ module BasicSpecHelper
     end
 
     def have_current_page(page)
-      have_selector 'span.current', page
+      have_selector 'span.current', text: page
     end
   else
     def ensure_page_links(*args)
@@ -31,7 +31,7 @@ module BasicSpecHelper
     end
 
     def have_current_page(page)
-      have_selector 'em.current', page
+      have_selector 'em.current', text: page
     end
   end
 end
