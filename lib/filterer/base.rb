@@ -76,7 +76,7 @@ module Filterer
       self.results = opts[:starting_query] || starting_query
       self.results = apply_default_filters || results
       add_params_to_query
-      order_results unless opts[:skip_ordering]
+      self.results = ordered_results unless opts[:skip_ordering]
       paginate_results unless opts[:skip_pagination]
       extend_active_record_relation
     end
@@ -148,22 +148,14 @@ module Filterer
       end
     end
 
-    def order_results
-      self.results = if !sort_option
-                       order_by_sort_option(default_sort_option)
-                     elsif sort_option[:string_or_proc].is_a?(String)
-                       order_by_sort_option(sort_option)
-                     elsif sort_option[:string_or_proc].is_a?(Proc)
-                       sort_string = sort_proc_to_string(sort_option)
-
-                       if sort_string
-                         order_by_sort_option(sort_option.merge(
-                           string_or_proc: sort_string
-                         ))
-                       else
-                         order_by_sort_option(filterer_default_sort_option)
-                       end
-                     end
+    def ordered_results
+      if sort_option && sort_option[:string_or_proc].is_a?(String)
+        order_by_sort_option(sort_option)
+      elsif sort_option && sort_option[:string_or_proc].is_a?(Proc)
+        order_by_sort_proc
+      else
+        order_by_sort_option(default_sort_option)
+      end
     end
 
     def per_page
@@ -191,6 +183,16 @@ module Filterer
         else # String
           x == sort_option[:key]
         end
+      end
+    end
+
+    def order_by_sort_proc
+      if (sort_string = sort_proc_to_string(sort_option))
+        order_by_sort_option(sort_option.merge(
+          string_or_proc: sort_string
+        ))
+      else
+        order_by_sort_option(filterer_default_sort_option)
       end
     end
 

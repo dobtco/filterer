@@ -361,7 +361,7 @@ describe Filterer::Base do
 
   describe 'options' do
     it 'skips ordering' do
-      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:order_results)
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:ordered_results)
       filterer = DefaultParamsFilterer.filter({}, skip_ordering: true)
     end
 
@@ -371,13 +371,14 @@ describe Filterer::Base do
     end
 
     it 'provides a helper method to skip both' do
-      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:order_results)
+      expect_any_instance_of(DefaultParamsFilterer).to_not receive(:ordered_results)
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
       filterer = DefaultParamsFilterer.chain({})
     end
 
     it 'provides a helper method to skip pagination' do
-      expect_any_instance_of(DefaultParamsFilterer).to receive(:order_results)
+      expect_any_instance_of(DefaultParamsFilterer).to receive(:ordered_results).
+        and_call_original
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
       filterer = DefaultParamsFilterer.filter_without_pagination({})
     end
