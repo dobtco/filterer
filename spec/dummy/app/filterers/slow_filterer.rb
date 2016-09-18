@@ -1,8 +1,5 @@
 class SlowFilterer < Filterer::Base
   sort_option 'name', default: true, tiebreaker: true
-  sort_option /field_([0-9]+)/, -> (query, matches, filterer) {
-    query.where(name: matches[1])
-  }
 
   def starting_query
     Person
