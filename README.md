@@ -188,7 +188,7 @@ OrganizationFilterer.filter(params, is_admin: current_user.admin?)
 
 [MIT](http://dobt.mit-license.org)
 
-[status]: https://circleci-badges.herokuapp.com/dobtco/filterer/4227dad9a04a91b070e9c25174f4035a2da6a828
+[status]: https://circleci.com/gh/dobtco/filterer.svg?style=shield&circle-token=4227dad9a04a91b070e9c25174f4035a2da6a828
 [coverage]: https://img.shields.io/coveralls/dobtco/filterer.svg
 [codeclimate]: https://img.shields.io/codeclimate/github/dobtco/filterer.svg
 [gem]: https://img.shields.io/gem/v/filterer.svg
