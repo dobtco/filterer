@@ -53,6 +53,16 @@ class DefaultFiltersFilterer < Filterer::Base
   end
 end
 
+class ReturnNilFilterer < Filterer::Base
+  def starting_query
+    Person.all
+  end
+
+  def param_foo(x)
+    # nil
+  end
+end
+
 class UnscopedFilterer < Filterer::Base
   def starting_query
     Person.select('name, email')
@@ -172,7 +182,7 @@ describe Filterer::Base do
     filterer = DefaultFiltersFilterer.filter({}, foo: 'bar')
   end
 
-  it 'allows returning nil from  default filters' do
+  it 'allows returning nil from default filters' do
     expect_any_instance_of(FakeQuery).to receive(:where).with(bar: 'baz').and_return(FakeQuery.new)
     filterer = DefaultFiltersFilterer.filter({}).where(bar: 'baz')
   end
@@ -185,6 +195,10 @@ describe Filterer::Base do
   it 'does not pass blank parameters' do
     expect_any_instance_of(SmokeTestFilterer).not_to receive(:param_foo)
     SmokeTestFilterer.new(foo: '')
+  end
+
+  it 'allows returning nil from a param_* method' do
+    expect(ReturnNilFilterer.filter(foo: 'bar')).to eq([])
   end
 
   describe 'sorting' do

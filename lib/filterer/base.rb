@@ -137,7 +137,7 @@ module Filterer
         method_name = "param_#{k}"
 
         if respond_to?(method_name)
-          self.results = send(method_name, v)
+          self.results = send(method_name, v) || results
         end
       end
     end
