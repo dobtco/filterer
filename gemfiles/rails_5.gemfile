@@ -2,6 +2,7 @@
 
 source "https://rubygems.org"
 
+gem "appraisal"
 gem "kaminari", :require => false
 gem "will_paginate", :require => false
 gem "rails", "5.0.0.1"

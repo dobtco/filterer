@@ -1,4 +1,5 @@
 #!/bin/sh
 
-bundle exec rspec
-WILL_PAGINATE=true bundle exec rspec
+bundle exec appraisal install
+bundle exec appraisal rspec
+WILL_PAGINATE=true bundle exec appraisal rspec
