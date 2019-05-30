@@ -387,7 +387,7 @@ describe Filterer::Base do
     it 'provides a helper method to skip both' do
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:ordered_results)
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
-      filterer = DefaultParamsFilterer.chain({})
+      filterer = DefaultParamsFilterer.filterer_chain({})
     end
 
     it 'provides a helper method to skip pagination' do

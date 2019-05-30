@@ -62,7 +62,7 @@ module Filterer
       end
 
       # @return [ActiveRecord::Association]
-      def chain(params = {}, opts = {})
+      def filterer_chain(params = {}, opts = {})
         new(params, opts.merge(
           skip_ordering: true,
           skip_pagination: true

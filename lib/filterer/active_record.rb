@@ -7,8 +7,8 @@ module Filterer
         delegate_to_filterer(:filter, params, opts)
       end
 
-      def chain(params = {}, opts = {})
-        delegate_to_filterer(:chain, params, opts)
+      def filterer_chain(params = {}, opts = {})
+        delegate_to_filterer(:filterer_chain, params, opts)
       end
 
       private
