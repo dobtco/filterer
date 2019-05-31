@@ -50,7 +50,7 @@ module Filterer
 
       # Public API
       # @return [ActiveRecord::Association]
-      def filter(params = {}, opts = {})
+      def filterer(params = {}, opts = {})
         new(params, opts).results
       end
 

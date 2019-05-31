@@ -179,17 +179,17 @@ describe Filterer::Base do
 
   it 'applies default filters' do
     expect_any_instance_of(FakeQuery).to receive(:where).with(foo: 'bar').and_return(FakeQuery.new)
-    filterer = DefaultFiltersFilterer.filter({}, foo: 'bar')
+    filterer = DefaultFiltersFilterer.filterer({}, foo: 'bar')
   end
 
   it 'allows returning nil from default filters' do
     expect_any_instance_of(FakeQuery).to receive(:where).with(bar: 'baz').and_return(FakeQuery.new)
-    filterer = DefaultFiltersFilterer.filter({}).where(bar: 'baz')
+    filterer = DefaultFiltersFilterer.filterer({}).where(bar: 'baz')
   end
 
   it 'passes parameters to the correct methods' do
     expect_any_instance_of(SmokeTestFilterer).to receive(:param_foo).with('bar').and_return(FakeQuery.new)
-    SmokeTestFilterer.filter(foo: 'bar')
+    SmokeTestFilterer.filterer(foo: 'bar')
   end
 
   it 'does not pass blank parameters' do
@@ -198,7 +198,7 @@ describe Filterer::Base do
   end
 
   it 'allows returning nil from a param_* method' do
-    expect(ReturnNilFilterer.filter(foo: 'bar')).to eq([])
+    expect(ReturnNilFilterer.filterer(foo: 'bar')).to eq([])
   end
 
   describe 'sorting' do
@@ -376,12 +376,12 @@ describe Filterer::Base do
   describe 'options' do
     it 'skips ordering' do
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:ordered_results)
-      filterer = DefaultParamsFilterer.filter({}, skip_ordering: true)
+      filterer = DefaultParamsFilterer.filterer({}, skip_ordering: true)
     end
 
     it 'skips pagination' do
       expect_any_instance_of(DefaultParamsFilterer).to_not receive(:paginate_results)
-      filterer = DefaultParamsFilterer.filter({}, skip_pagination: true)
+      filterer = DefaultParamsFilterer.filterer({}, skip_pagination: true)
     end
 
     it 'provides a helper method to skip both' do
