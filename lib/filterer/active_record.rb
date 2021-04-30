@@ -3,12 +3,12 @@ module Filterer
     extend ActiveSupport::Concern
 
     class_methods do
-      def filter(params = {}, opts = {})
-        delegate_to_filterer(:filter, params, opts)
+      def filterer(params = {}, opts = {})
+        delegate_to_filterer(:filterer, params, opts)
       end
 
-      def chain(params = {}, opts = {})
-        delegate_to_filterer(:chain, params, opts)
+      def filterer_chain(params = {}, opts = {})
+        delegate_to_filterer(:filterer_chain, params, opts)
       end
 
       private
