@@ -7,7 +7,7 @@ module BasicSpecHelper
 
       args.each do |x|
         if x.is_a?(Integer)
-          expect(page).to have_link(x)
+          expect(page).to have_link(x.to_s)
         else
           expect(page).to have_selector('li', text: x)
         end
@@ -23,7 +23,7 @@ module BasicSpecHelper
 
       args.each do |x|
         if x.is_a?(Integer)
-          expect(page).to have_link(x)
+          expect(page).to have_link(x.to_s)
         else
           expect(page).to have_selector('li', text: x)
         end

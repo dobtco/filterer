@@ -1,7 +1,5 @@
 ⚠️ Warning: This project is no longer maintained.
 ====
- 
-📝 This project is not compatible with ruby 2.6.6 or rails 6 and it is no longer maintained.
 
 
 Filterer [![status]](https://circleci.com/gh/dobtco/filterer)  [![coverage]](https://coveralls.io/r/dobtco/filterer) [![codeclimate]](https://codeclimate.com/github/dobtco/filterer) [![gem]](http://badge.fury.io/rb/filterer)

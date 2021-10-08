@@ -7,13 +7,13 @@ describe 'ActiveRecord' do
 
     params = { name: 'b' }
     expect(PersonFilterer).to receive(:new).with(params, anything).and_call_original
-    expect(Person.filter(params)).to eq [included]
+    expect(Person.filter(params)).to match_array(included)
   end
 
   it 'preserves an existing query' do
     person = Person.create(name: 'b')
-    expect(Person.where(name: 'b').filter).to eq [person]
-    expect(Person.where(name: 'asdf').filter).to eq []
+    expect(Person.where(name: 'b').filter).to match_array(person)
+    expect(Person.where(name: 'asdf').filter).to match_array([])
   end
 
   it 'finds for a model' do
@@ -26,12 +26,6 @@ describe 'ActiveRecord' do
     included = Person.create(company: company)
     excluded = Person.create
 
-    expect(Company.first.people.filter).to eq [included]
-  end
-
-  it 'throws the correct error when not found' do
-    expect do
-      Company.all.filter({})
-    end.to raise_error(/CompanyFilterer/)
+    expect(Company.first.people.filter).to match_array(included)
   end
 end
